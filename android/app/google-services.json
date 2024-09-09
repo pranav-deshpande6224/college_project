@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "460051203413",
+    "project_id": "iit-jodhpur-project",
+    "storage_bucket": "iit-jodhpur-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:460051203413:android:eca337d6c099ccf6811bdc",
+        "android_client_info": {
+          "package_name": "com.example.college_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "460051203413-tgb7pn1tj1dutl1sfe7bhms1unlaohqe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.college_project",
+            "certificate_hash": "14d2675b530c482ee16ed1ff58fb627307b394d5"
+          }
+        },
+        {
+          "client_id": "460051203413-6sufplkkgi8qnlqgke37dm5i7qtsdsti.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDitMTFO2kRfFmA0s6RPHCyCY-xEbDBvNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "460051203413-6sufplkkgi8qnlqgke37dm5i7qtsdsti.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "460051203413-fuuc9uvrt19uksapgc58nlm4imo72vuh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.collegeProject"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
