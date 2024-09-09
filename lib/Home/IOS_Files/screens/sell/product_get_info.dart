@@ -3,6 +3,7 @@ import 'package:college_project/Home/IOS_Files/screens/sell/phone_brands.dart';
 import 'package:college_project/Home/Providers/selected_item.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -644,6 +645,98 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     );
   }
 
+  Container container() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border.all(color: CupertinoColors.systemGrey),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      height: 300,
+      child: Column(
+        children: [
+          Expanded(
+            flex: 8,
+            child: Stack(
+              children: [
+                Center(
+                  child: Image.asset(
+                    'assets/images/apple_a.png',
+                    height: 100,
+                    width: 100,
+                  ),
+                )
+              ],
+            ),
+          ),
+          Container(
+            height: 0.5,
+            width: double.infinity,
+            color: CupertinoColors.black,
+          ),
+          Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      unfocusFields();
+                      _uploadImages(context);
+                    },
+                    icon: const Icon(
+                      CupertinoIcons.add_circled_solid,
+                      size: 40,
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(itemBuilder: (ctx, index) {
+                      return CircleAvatar();
+                    }),
+                  )
+                ],
+              ))
+        ],
+      ),
+    );
+  }
+
+  void _uploadImages(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (ctx) {
+        return CupertinoActionSheet(
+          actions: [
+            CupertinoActionSheetAction(
+              onPressed: () {
+                _cameraPressed();
+              },
+              child: Text(
+                'Camera',
+                style: GoogleFonts.roboto(),
+              ),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                _galleryPressed();
+              },
+              child: Text('Gallery', style: GoogleFonts.roboto()),
+            )
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.roboto(color: CupertinoColors.systemRed),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget changeUIAccordingly(String subCategoryName) {
     if (subCategoryName == Constants.mobilePhone) {
       return GestureDetector(
@@ -656,7 +749,6 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     } else if (subCategoryName == Constants.mobileChargerLaptopCharger) {
       return chargerSubCategory();
     } else {
-      FocusScope.of(context).requestFocus(_adTitleFocus);
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(18),
@@ -676,6 +768,10 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 ),
                 setThePrice(),
                 priceNotSetError(),
+                const SizedBox(
+                  height: 20,
+                ),
+                container(),
                 const SizedBox(
                   height: 50,
                 ),
