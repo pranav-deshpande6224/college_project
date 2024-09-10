@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:college_project/Authentication/Providers/error.dart';
 import 'package:college_project/Home/IOS_Files/screens/sell/phone_brands.dart';
+import 'package:college_project/Home/Providers/image_selected.dart';
+import 'package:college_project/Home/Providers/select_image.dart';
 import 'package:college_project/Home/Providers/selected_item.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProductGetInfo extends ConsumerStatefulWidget {
   final String subCategoryName;
@@ -306,7 +311,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
       child: CupertinoButton(
         color: CupertinoColors.activeBlue,
         child: Text(
-          'Next',
+          'Post Your Ad',
           style: GoogleFonts.roboto(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         onPressed: () {
@@ -470,6 +475,10 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 setThePrice(),
                 priceNotSetError(),
                 const SizedBox(
+                  height: 20,
+                ),
+                container(),
+                const SizedBox(
                   height: 50,
                 ),
                 getCupertinoButton()
@@ -543,6 +552,10 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 ),
                 setThePrice(),
                 priceNotSetError(),
+                const SizedBox(
+                  height: 20,
+                ),
+                container(),
                 const SizedBox(
                   height: 50,
                 ),
@@ -635,6 +648,10 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
               setThePrice(),
               priceNotSetError(),
               const SizedBox(
+                height: 20,
+              ),
+              container(),
+              const SizedBox(
                 height: 50,
               ),
               getCupertinoButton()
@@ -655,19 +672,48 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
       height: 300,
       child: Column(
         children: [
-          Expanded(
-            flex: 8,
-            child: Stack(
-              children: [
-                Center(
-                  child: Image.asset(
-                    'assets/images/apple_a.png',
-                    height: 100,
-                    width: 100,
-                  ),
-                )
-              ],
-            ),
+          Consumer(
+            builder: (ctx, ref, child) {
+              final images = ref.watch(imageProvider);
+              return Expanded(
+                flex: 8,
+                child: images.isEmpty
+                    ? Center(
+                        child: Image.asset(
+                          'assets/images/upload.jpg',
+                          height: 100,
+                          width: 100,
+                        ),
+                      )
+                    : Consumer(
+                        builder: (ctx, ref, child) {
+                          final selectedIndex = ref.watch(imageSelectProvider);
+                          return Stack(
+                            children: [
+                              Image.file(
+                                width: double.infinity,
+                                File(images[selectedIndex].path),
+                                fit: BoxFit.fill,
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: -10,
+                                child: IconButton(
+                                  onPressed: () {
+                                    dialog(ctx, images[selectedIndex]);
+                                  },
+                                  icon: const Icon(
+                                    CupertinoIcons.clear_circled_solid,
+                                    color: CupertinoColors.systemIndigo,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+              );
+            },
           ),
           Container(
             height: 0.5,
@@ -675,30 +721,130 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
             color: CupertinoColors.black,
           ),
           Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      unfocusFields();
-                      _uploadImages(context);
-                    },
-                    icon: const Icon(
-                      CupertinoIcons.add_circled_solid,
-                      size: 40,
-                    ),
+            flex: 2,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IconButton(
+                  padding: const EdgeInsets.only(top: 5),
+                  onPressed: () {
+                    unfocusFields();
+                    _uploadImages(context);
+                  },
+                  icon: const Icon(
+                    CupertinoIcons.add_circled_solid,
+                    size: 50,
                   ),
-                  Expanded(
-                    child: ListView.builder(itemBuilder: (ctx, index) {
-                      return CircleAvatar();
-                    }),
-                  )
-                ],
-              ))
+                ),
+                Expanded(
+                  child: Consumer(
+                    builder: (ctx, ref, child) {
+                      final images = ref.watch(imageProvider);
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: images.length,
+                              itemBuilder: (ctx, index) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    ref
+                                        .read(imageSelectProvider.notifier)
+                                        .changeIndex(index);
+                                  },
+                                  child: Container(
+                                    height: 20,
+                                    width: 50,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: CupertinoColors.systemGrey,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Image.file(
+                                        height: 30,
+                                        width: 40,
+                                        File(images[index].path),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                )
+              ],
+            ),
+          )
         ],
       ),
     );
+  }
+
+  void dialog(BuildContext context, XFile image) {
+    showCupertinoDialog(
+        context: context,
+        builder: (ctx) {
+          return CupertinoAlertDialog(
+            title: Text(
+              'Alert',
+              style: GoogleFonts.roboto(),
+            ),
+            content: Text(
+              'Are you sure want to delete this image?',
+              style: GoogleFonts.roboto(),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(
+                  'Yes',
+                  style: GoogleFonts.roboto(),
+                ),
+                onPressed: () {
+                  ref.read(imageProvider.notifier).removeImage(image);
+                  ref.read(imageSelectProvider.notifier).changeIndex(0);
+                  Navigator.of(ctx).pop();
+                },
+              ),
+              CupertinoDialogAction(
+                child: Text(
+                  'No',
+                  style: GoogleFonts.roboto(),
+                ),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+              ),
+            ],
+          );
+        });
+  }
+
+  void _cameraPressed(BuildContext ctx) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 50,
+    );
+    if (image == null) return;
+    ref.read(imageProvider.notifier).addImage([XFile(image.path)]);
+  }
+
+  void _galleryPressed(BuildContext ctx) async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> images = await picker.pickMultiImage();
+    if (images.isNotEmpty) {
+      ref.read(imageProvider.notifier).addImage(images);
+      if (ctx.mounted) {
+        Navigator.of(ctx).pop();
+      }
+    }
   }
 
   void _uploadImages(BuildContext context) {
@@ -709,7 +855,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           actions: [
             CupertinoActionSheetAction(
               onPressed: () {
-                _cameraPressed();
+                _cameraPressed(ctx);
               },
               child: Text(
                 'Camera',
@@ -718,7 +864,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
             ),
             CupertinoActionSheetAction(
               onPressed: () {
-                _galleryPressed();
+                _galleryPressed(ctx);
               },
               child: Text('Gallery', style: GoogleFonts.roboto()),
             )
@@ -884,7 +1030,9 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
               ref.read(ipadError.notifier).updateError('');
               ref.read(chargerError.notifier).updateError('');
               ref.read(priceError.notifier).updateError('');
-              Navigator.of(context).pop();
+              ref.read(imageProvider.notifier).reset();
+              ref.read(imageSelectProvider.notifier).changeIndex(0);
+              Navigator.pop(context);
             }),
       ),
       child: GestureDetector(

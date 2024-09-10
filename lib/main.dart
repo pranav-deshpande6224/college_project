@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:college_project/Authentication/Screens/android.dart';
 import 'package:college_project/Authentication/IOS_Files/Screens/ios.dart';
 import 'package:firebase_auth/firebase_auth.dart';
