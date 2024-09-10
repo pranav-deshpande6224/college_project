@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
 import 'package:college_project/Home/IOS_Files/screens/sell/phone_brands.dart';
 import 'package:college_project/Home/Providers/image_selected.dart';
@@ -32,11 +32,18 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
   final _priceFocus = FocusNode();
   final List<String> _tabletBrands = ['iPad', 'Samsung', 'Other Tablets'];
   final List<String> chargers = ['Mobile', 'Tablet', 'Smart Watch', 'Speakers'];
+  late AuthHandler handler;
   void unfocusFields() {
     _brandFocus.unfocus();
     _adTitleFocus.unfocus();
     _adDescriptionFocus.unfocus();
     _priceFocus.unfocus();
+  }
+
+  @override
+  void initState() {
+    handler = AuthHandler.authHandlerInstance;
+    super.initState();
   }
 
   @override
@@ -104,6 +111,35 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     }
   }
 
+  void saveMyAdToDB() {}
+
+  bool checkAtleastOneImage() {
+    if (ref.read(imageProvider).isEmpty) {
+      return true; // no image
+    }
+    return false; // Atleast 1 image has uploaded
+  }
+
+  uploadImageDialog() {
+    showCupertinoDialog(
+        context: context,
+        builder: (ctx) {
+          return CupertinoAlertDialog(
+            title: Text('Alert', style: GoogleFonts.roboto()),
+            content: Text('Please select atleast 1 image',
+                style: GoogleFonts.roboto()),
+            actions: [
+              CupertinoDialogAction(
+                child: Text('Okay', style: GoogleFonts.roboto()),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        });
+  }
+
   void _nextPressed() {
     unfocusFields();
     if (widget.subCategoryName == Constants.mobilePhone) {
@@ -111,15 +147,15 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
       adTitleErrorText();
       adDescriptionErrorText();
       priceErrorText();
-
       if (ref.read(brandError).isEmpty &&
           ref.read(adTitleError).isEmpty &&
           ref.read(adDescriptionError).isEmpty &&
           ref.read(priceError).isEmpty) {
-        print(_brandController.text);
-        print(_adTitleController.text);
-        print(_adDescriptionController.text);
-        print(_priceController.text);
+        if (checkAtleastOneImage()) {
+          uploadImageDialog();
+          return;
+        }
+        saveMyAdToDB();
       }
     } else if (widget.subCategoryName == Constants.tablet) {
       ipadSelectionErrorText();
