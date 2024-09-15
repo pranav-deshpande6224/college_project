@@ -14,5 +14,6 @@ final loginSpinner = StateNotifierProvider<Spinner, bool>((_) => Spinner());
 final submitSpinner = StateNotifierProvider<Spinner, bool>((_) => Spinner());
 final googleSignInSpinner = StateNotifierProvider<Spinner, bool>((_) => Spinner());
 final appleSpinner = StateNotifierProvider<Spinner, bool>((_) => Spinner());
+final submitAdPostSpinner = StateNotifierProvider<Spinner, bool>((_) => Spinner());
 
 

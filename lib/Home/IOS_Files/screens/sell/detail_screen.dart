@@ -24,6 +24,7 @@ class DetailScreen extends StatelessWidget {
               Navigator.of(context).push(
                 CupertinoPageRoute(
                   builder: (ctx) => ProductGetInfo(
+                    categoryName: categoryName,
                     subCategoryName: subCategoryList[index],
                   ),
                 ),
@@ -32,7 +33,10 @@ class DetailScreen extends StatelessWidget {
             child: Column(
               children: [
                 CupertinoListTile(
-                  trailing: const Icon(CupertinoIcons.right_chevron),
+                  trailing: const Icon(
+                    CupertinoIcons.right_chevron,
+                    color: CupertinoColors.systemIndigo,
+                  ),
                   title: Text(
                     subCategoryList[index],
                     style: GoogleFonts.roboto(),

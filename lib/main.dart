@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Screens/android.dart';
 import 'package:college_project/Authentication/IOS_Files/Screens/ios.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,7 +31,9 @@ Future<bool> checkUserLoggedIn() async {
     return false;
   } else {
     if (user.uid == uid) {
-      if(user.emailVerified) {
+      if (user.emailVerified) {
+        AuthHandler handler = AuthHandler.authHandlerInstance;
+        handler.user = user;
         return true;
       } else {
         await FirebaseAuth.instance.signOut();

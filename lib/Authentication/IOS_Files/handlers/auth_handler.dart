@@ -4,6 +4,7 @@ import 'package:college_project/Authentication/IOS_Files/Screens/auth/email_veri
 import 'package:college_project/Authentication/Providers/spinner.dart';
 import 'package:college_project/Home/IOS_Files/screens/bottom_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,6 +15,7 @@ class AuthHandler {
   static AuthHandler authHandlerInstance = AuthHandler();
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final fireStore = FirebaseFirestore.instance;
+  final storage = FirebaseStorage.instance;
   User? user;
 
   showErrorDialog(BuildContext context, String title, String content) {

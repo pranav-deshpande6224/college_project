@@ -14,6 +14,7 @@ class PhoneBrands extends ConsumerStatefulWidget {
 
 class _PhoneBrandsState extends ConsumerState<PhoneBrands> {
   final _searchTextField = TextEditingController();
+  final _searchFocusNode = FocusNode();
   Widget _buildSectionHeader(String title) {
     return Container(
       decoration: BoxDecoration(
@@ -67,6 +68,7 @@ class _PhoneBrandsState extends ConsumerState<PhoneBrands> {
               size: 25,
             ),
             onPressed: () {
+              _searchFocusNode.unfocus();
               ref.read(brandFilterProvider.notifier).filterByBrand('');
               Navigator.of(context).pop();
             }),
@@ -85,6 +87,7 @@ class _PhoneBrandsState extends ConsumerState<PhoneBrands> {
             child: Column(
               children: [
                 CupertinoSearchTextField(
+                  focusNode: _searchFocusNode,
                   controller: _searchTextField,
                   onChanged: (value) {
                     ref.read(brandFilterProvider.notifier).filterByBrand(value);

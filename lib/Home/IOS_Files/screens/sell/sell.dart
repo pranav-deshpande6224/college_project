@@ -94,7 +94,7 @@ class _SellState extends State<Sell> {
             itemCount: categoryList.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 1,
+              childAspectRatio: 1.2,
               mainAxisSpacing: 3,
               crossAxisSpacing: 3,
             ),
@@ -113,7 +113,7 @@ class _SellState extends State<Sell> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemGrey5,
+                    color: CupertinoColors.systemIndigo,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -123,6 +123,7 @@ class _SellState extends State<Sell> {
                         Icon(
                           category.icon,
                           size: 35,
+                          color: CupertinoColors.white,
                         ),
                         const SizedBox(
                           height: 10,
@@ -131,6 +132,7 @@ class _SellState extends State<Sell> {
                           child: Text(
                             category.categoryTitle,
                             style: GoogleFonts.roboto(
+                              color: CupertinoColors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),

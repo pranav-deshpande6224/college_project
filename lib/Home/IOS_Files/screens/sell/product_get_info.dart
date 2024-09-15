@@ -1,21 +1,32 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
+import 'package:college_project/Authentication/Providers/spinner.dart';
+import 'package:college_project/Home/IOS_Files/screens/sell/ad_uploaded.dart';
 import 'package:college_project/Home/IOS_Files/screens/sell/phone_brands.dart';
 import 'package:college_project/Home/Providers/image_selected.dart';
 import 'package:college_project/Home/Providers/select_image.dart';
 import 'package:college_project/Home/Providers/selected_item.dart';
 import 'package:college_project/constants/constants.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 class ProductGetInfo extends ConsumerStatefulWidget {
+  final String categoryName;
   final String subCategoryName;
 
-  const ProductGetInfo({required this.subCategoryName, super.key});
+  const ProductGetInfo({
+    required this.categoryName,
+    required this.subCategoryName,
+    super.key,
+  });
 
   @override
   ConsumerState<ProductGetInfo> createState() => _ProductGetInfoState();
@@ -111,7 +122,86 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     }
   }
 
-  void saveMyAdToDB() {}
+  void saveMyAdToDB() async {
+    List<String> url = [];
+    final fbStorage = handler.storage;
+    final fbCloudFireStore = handler.fireStore;
+    final uuid = const Uuid().v4();
+    if (handler.user?.uid == null) {
+      // then i need to write the code to move to the login screen.
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          CupertinoPageRoute(builder: (ctx) => const LoginIos()),
+          (Route<dynamic> route) => false);
+      return;
+    }
+    ref.read(submitAdPostSpinner.notifier).isLoading();
+    print(ref.read(imageProvider).length);
+    for (int i = 0; i < ref.read(imageProvider).length; i++) {
+      String uniqueName = '${handler.user!.uid}/$uuid/image_$i.jpg';
+      UploadTask task = fbStorage
+          .ref(uniqueName)
+          .putFile(File(ref.read(imageProvider)[i].path));
+      await task.whenComplete(() => null);
+      String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
+      print(downloadURL);
+      url.add(downloadURL);
+    }
+    if (widget.subCategoryName == Constants.mobilePhone) {
+      CollectionReference myActiveAdsCollection = fbCloudFireStore
+          .collection('users')
+          .doc(handler.user!.uid)
+          .collection('MyActiveAds');
+      final timeStamp = FieldValue.serverTimestamp();
+      DocumentReference adDocRef = await myActiveAdsCollection.add({
+        'adTitle': _adTitleController.text.trim(),
+        'adDescription': _adDescriptionController.text.trim(),
+        'price': double.parse(_priceController.text.trim()),
+        'brand': _brandController.text.trim(),
+        'images': url,
+        'createdAt': timeStamp, // Add server timestamp
+      });
+      CollectionReference allAdsCollection =
+          fbCloudFireStore.collection('AllAds');
+      QuerySnapshot existingPost = await allAdsCollection
+          .where('adReference', isEqualTo: adDocRef)
+          .get();
+      if (existingPost.docs.isEmpty) {
+        allAdsCollection.add({
+          'adReference':
+              adDocRef, // Store reference to the ad document in MyActiveAds
+          'createdAt': timeStamp
+        });
+      } else {
+        // I can Edit the Product here
+      }
+      CollectionReference categoryCollection =
+          fbCloudFireStore.collection('Category');
+      DocumentReference categoryDocRef =
+          categoryCollection.doc(widget.categoryName);
+      DocumentReference subcategoryDocRef = categoryDocRef
+          .collection('Subcategories')
+          .doc(widget.subCategoryName);
+      QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
+          .collection('Ads')
+          .where('adReference', isEqualTo: adDocRef)
+          .get();
+
+      if (existingSubcategoryAd.docs.isEmpty) {
+        // If the ad reference does not exist in the subcategory, add it
+        subcategoryDocRef
+            .collection('Ads')
+            .add({'adReference': adDocRef, 'createdAt': timeStamp});
+      } else {
+        print("This ad reference already exists in the subcategory");
+      }
+    }
+    if (!context.mounted) {
+      return;
+    }
+    Navigator.of(context)
+        .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
+    ref.read(submitAdPostSpinner.notifier).isDoneLoading();
+  }
 
   bool checkAtleastOneImage() {
     if (ref.read(imageProvider).isEmpty) {
@@ -341,19 +431,29 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
   }
 
   Widget getCupertinoButton() {
-    return SizedBox(
-      height: 50,
-      width: double.infinity,
-      child: CupertinoButton(
-        color: CupertinoColors.activeBlue,
-        child: Text(
-          'Post Your Ad',
-          style: GoogleFonts.roboto(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        onPressed: () {
-          _nextPressed();
-        },
-      ),
+    return Consumer(
+      builder: (context, ref, child) {
+        final isLoading = ref.watch(submitAdPostSpinner);
+        return SizedBox(
+          height: 50,
+          width: double.infinity,
+          child: CupertinoButton(
+            color: CupertinoColors.activeBlue,
+            child: isLoading
+                ? const CupertinoActivityIndicator(
+                    color: CupertinoColors.white,
+                  )
+                : Text(
+                    'Post Your Ad',
+                    style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+            onPressed: () {
+              _nextPressed();
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -377,6 +477,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
               Expanded(
                 child: CupertinoTextField(
                   onTap: () async {
+                    FocusScope.of(context).unfocus();
                     final selectedBrand =
                         await Navigator.of(context).push<Map<String, String>>(
                       CupertinoPageRoute(
@@ -384,7 +485,11 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                         builder: (ctx) => const PhoneBrands(),
                       ),
                     );
-                    if (selectedBrand == null) return;
+                    if (selectedBrand == null) {
+                      print('reaching here');
+                      FocusScope.of(context).unfocus();
+                      return;
+                    }
                     _brandController.text = selectedBrand['brand']!;
                     _brandFocus.unfocus();
                   },
@@ -727,7 +832,6 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                           return Stack(
                             children: [
                               Image.file(
-                                width: double.infinity,
                                 File(images[selectedIndex].path),
                                 fit: BoxFit.fill,
                               ),
@@ -891,6 +995,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           actions: [
             CupertinoActionSheetAction(
               onPressed: () {
+                Navigator.of(ctx).pop();
                 _cameraPressed(ctx);
               },
               child: Text(
@@ -1044,6 +1149,21 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     );
   }
 
+  void resetFields() {
+    unfocusFields();
+    ref.read(selectChargerProvider.notifier).updateSelectedItem(-1);
+    ref.read(selectedIpadProvider.notifier).updateSelectedItem(-1);
+    ref.read(brandError.notifier).updateError('');
+    ref.read(adTitleError.notifier).updateError('');
+    ref.read(adDescriptionError.notifier).updateError('');
+    ref.read(ipadError.notifier).updateError('');
+    ref.read(chargerError.notifier).updateError('');
+    ref.read(priceError.notifier).updateError('');
+    ref.read(imageProvider.notifier).reset();
+    ref.read(imageSelectProvider.notifier).changeIndex(0);
+    ref.read(imageProvider.notifier).reset();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -1057,17 +1177,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
             padding: EdgeInsetsDirectional.zero,
             child: const Icon(CupertinoIcons.back),
             onPressed: () {
-              unfocusFields();
-              ref.read(selectChargerProvider.notifier).updateSelectedItem(-1);
-              ref.read(selectedIpadProvider.notifier).updateSelectedItem(-1);
-              ref.read(brandError.notifier).updateError('');
-              ref.read(adTitleError.notifier).updateError('');
-              ref.read(adDescriptionError.notifier).updateError('');
-              ref.read(ipadError.notifier).updateError('');
-              ref.read(chargerError.notifier).updateError('');
-              ref.read(priceError.notifier).updateError('');
-              ref.read(imageProvider.notifier).reset();
-              ref.read(imageSelectProvider.notifier).changeIndex(0);
+              resetFields();
               Navigator.pop(context);
             }),
       ),

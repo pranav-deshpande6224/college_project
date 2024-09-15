@@ -18,31 +18,48 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: CupertinoTabScaffold(
-        tabBar: CupertinoTabBar(items: const [
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            activeIcon: Icon(CupertinoIcons.chat_bubble_fill),
-            icon: Icon(CupertinoIcons.chat_bubble),
-            label: 'chats',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.add_circled_solid),
-            label: 'Sell',
-          ),
-          BottomNavigationBarItem(
-            activeIcon: Icon(CupertinoIcons.heart_fill),
-            icon: Icon(CupertinoIcons.heart),
-            label: 'My ADS',
-          ),
-          BottomNavigationBarItem(
-            activeIcon: Icon(CupertinoIcons.person_fill),
-            icon: Icon(CupertinoIcons.person),
-            label: 'account',
-          ),
-        ]),
+        tabBar: CupertinoTabBar(
+            activeColor:
+                CupertinoColors.systemIndigo, // Text color for active tab
+            inactiveColor: CupertinoColors.systemGrey,
+            items: const [
+              BottomNavigationBarItem(
+                activeIcon: Icon(
+                  CupertinoIcons.house_fill,
+                  color: CupertinoColors.systemIndigo,
+                ),
+                icon: Icon(
+                  CupertinoIcons.home,
+                ),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                activeIcon: Icon(CupertinoIcons.chat_bubble_fill,
+                    color: CupertinoColors.systemIndigo),
+                icon: Icon(CupertinoIcons.chat_bubble),
+                label: 'chats',
+              ),
+              BottomNavigationBarItem(
+                activeIcon: Icon(CupertinoIcons.add_circled_solid,
+                    color: CupertinoColors.systemIndigo),
+                icon: Icon(
+                  CupertinoIcons.add_circled,
+                ),
+                label: 'Sell',
+              ),
+              BottomNavigationBarItem(
+                activeIcon: Icon(CupertinoIcons.heart_fill,
+                    color: CupertinoColors.systemIndigo),
+                icon: Icon(CupertinoIcons.heart),
+                label: 'My ADS',
+              ),
+              BottomNavigationBarItem(
+                activeIcon: Icon(CupertinoIcons.person_fill,
+                    color: CupertinoColors.systemIndigo),
+                icon: Icon(CupertinoIcons.person),
+                label: 'account',
+              ),
+            ]),
         tabBuilder: (context, index) {
           switch (index) {
             case 0:
