@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/email_verification.dart';
 import 'package:college_project/Authentication/Providers/spinner.dart';
-import 'package:college_project/Home/IOS_Files/screens/bottom_nav_bar.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/bottom_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';

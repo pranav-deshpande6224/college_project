@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../Home/IOS_Files/screens/bottom_nav_bar.dart';
+import '../../../../UIPart/IOS_Files/screens/bottom_nav_bar.dart';
 import '../../../Providers/password_provider.dart';
 import 'forget_password.dart';
 import 'sign_up.dart';

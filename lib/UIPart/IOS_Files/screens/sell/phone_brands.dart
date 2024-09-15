@@ -1,4 +1,4 @@
-import 'package:college_project/Home/Providers/brand_filter.dart';
+import 'package:college_project/UIPart/Providers/brand_filter.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

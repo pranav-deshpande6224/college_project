@@ -1,7 +1,7 @@
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.dart';
 import 'package:flutter/cupertino.dart';
 
-import '../../../Home/IOS_Files/screens/bottom_nav_bar.dart';
+import '../../../UIPart/IOS_Files/screens/bottom_nav_bar.dart';
 
 class Ios extends StatelessWidget {
   final bool isUserLoggedIn;

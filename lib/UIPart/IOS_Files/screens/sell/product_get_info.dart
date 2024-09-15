@@ -4,11 +4,11 @@ import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
 import 'package:college_project/Authentication/Providers/spinner.dart';
-import 'package:college_project/Home/IOS_Files/screens/sell/ad_uploaded.dart';
-import 'package:college_project/Home/IOS_Files/screens/sell/phone_brands.dart';
-import 'package:college_project/Home/Providers/image_selected.dart';
-import 'package:college_project/Home/Providers/select_image.dart';
-import 'package:college_project/Home/Providers/selected_item.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/sell/ad_uploaded.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/sell/phone_brands.dart';
+import 'package:college_project/UIPart/Providers/image_selected.dart';
+import 'package:college_project/UIPart/Providers/select_image.dart';
+import 'package:college_project/UIPart/Providers/selected_item.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -158,7 +158,8 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
         'price': double.parse(_priceController.text.trim()),
         'brand': _brandController.text.trim(),
         'images': url,
-        'createdAt': timeStamp, // Add server timestamp
+        'createdAt': timeStamp,
+        'postedBy': handler.user!.displayName
       });
       CollectionReference allAdsCollection =
           fbCloudFireStore.collection('AllAds');

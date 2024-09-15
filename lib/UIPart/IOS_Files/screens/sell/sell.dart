@@ -1,5 +1,5 @@
-import 'package:college_project/Home/IOS_Files/model/category.dart';
-import 'package:college_project/Home/IOS_Files/screens/sell/detail_screen.dart';
+import 'package:college_project/UIPart/IOS_Files/model/category.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/sell/detail_screen.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -113,7 +113,7 @@ class _SellState extends State<Sell> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemIndigo,
+                    color: CupertinoColors.systemBrown,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(

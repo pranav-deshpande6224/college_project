@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../../Home/IOS_Files/screens/bottom_nav_bar.dart';
+import '../../../../UIPart/IOS_Files/screens/bottom_nav_bar.dart';
 
 class EmailVerification extends StatefulWidget {
   final String email;

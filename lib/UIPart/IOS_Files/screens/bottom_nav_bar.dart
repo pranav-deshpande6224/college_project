@@ -1,5 +1,5 @@
 import 'package:college_project/Home/IOS_FILES/screens/home.dart';
-import 'package:college_project/Home/IOS_Files/screens/profile/profile.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/profile/profile.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'chats/chats.dart';

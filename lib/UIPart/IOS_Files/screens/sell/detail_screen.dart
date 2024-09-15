@@ -1,4 +1,4 @@
-import 'package:college_project/Home/IOS_Files/screens/sell/product_get_info.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/sell/product_get_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
