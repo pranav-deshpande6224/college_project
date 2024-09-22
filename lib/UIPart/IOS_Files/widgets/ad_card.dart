@@ -18,16 +18,16 @@ class AdCard extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black
-                      .withOpacity(0.2), // Shadow color with opacity
-                  spreadRadius: 1, // Spread radius (expands the shadow)
-                  blurRadius: 10, // Blur radius (makes the shadow softer)
+                      .withOpacity(0.2), 
+                  spreadRadius: 1, 
+                  blurRadius: 10, 
                   offset:
-                      const Offset(0, 5), // Offset (horizontal: 0, vertical: 5)
+                      const Offset(0, 5),
                 ),
               ],
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(width: 1),
+              border: Border.all(width: 0.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,8 +45,7 @@ class AdCard extends StatelessWidget {
                               child: Stack(
                                 children: [
                                   Image.asset(
-                                    width: 80,
-                                    height: 80,
+                                    width: 95,
                                     'assets/images/placeholder.jpg',
                                   ),
                                   Positioned(
@@ -62,7 +61,7 @@ class AdCard extends StatelessWidget {
                               ),
                             ),
                             Container(
-                              width: 1,
+                              width: 0.5,
                               height: double.infinity,
                               color: Colors.black,
                             )
@@ -80,7 +79,7 @@ class AdCard extends StatelessWidget {
                               child: Text(
                                 ad.adTitle,
                                 style: GoogleFonts.roboto(
-                                    fontSize: 18, fontWeight: FontWeight.w500),
+                                    fontSize: 18, fontWeight: FontWeight.w500,),
                               ),
                             ),
                             const SizedBox(

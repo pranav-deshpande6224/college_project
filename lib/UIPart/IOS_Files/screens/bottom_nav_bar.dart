@@ -1,4 +1,4 @@
-import 'package:college_project/Home/IOS_FILES/screens/home.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/home/home.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/profile/profile.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -19,14 +19,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
     return CupertinoPageScaffold(
       child: CupertinoTabScaffold(
         tabBar: CupertinoTabBar(
-            activeColor:
-                CupertinoColors.systemIndigo, // Text color for active tab
+            activeColor: CupertinoColors.activeBlue,
             inactiveColor: CupertinoColors.systemGrey,
             items: const [
               BottomNavigationBarItem(
                 activeIcon: Icon(
                   CupertinoIcons.house_fill,
-                  color: CupertinoColors.systemIndigo,
+                  color: CupertinoColors.activeBlue,
                 ),
                 icon: Icon(
                   CupertinoIcons.home,
@@ -34,28 +33,38 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                activeIcon: Icon(CupertinoIcons.chat_bubble_fill,
-                    color: CupertinoColors.systemIndigo),
-                icon: Icon(CupertinoIcons.chat_bubble),
+                activeIcon: Icon(
+                  CupertinoIcons.chat_bubble_fill,
+                  color: CupertinoColors.activeBlue,
+                ),
+                icon: Icon(
+                  CupertinoIcons.chat_bubble,
+                ),
                 label: 'chats',
               ),
               BottomNavigationBarItem(
-                activeIcon: Icon(CupertinoIcons.add_circled_solid,
-                    color: CupertinoColors.systemIndigo),
+                activeIcon: Icon(
+                  CupertinoIcons.add_circled_solid,
+                  color: CupertinoColors.activeBlue,
+                ),
                 icon: Icon(
                   CupertinoIcons.add_circled,
                 ),
                 label: 'Sell',
               ),
               BottomNavigationBarItem(
-                activeIcon: Icon(CupertinoIcons.heart_fill,
-                    color: CupertinoColors.systemIndigo),
+                activeIcon: Icon(
+                  CupertinoIcons.heart_fill,
+                  color: CupertinoColors.activeBlue,
+                ),
                 icon: Icon(CupertinoIcons.heart),
                 label: 'My ADS',
               ),
               BottomNavigationBarItem(
-                activeIcon: Icon(CupertinoIcons.person_fill,
-                    color: CupertinoColors.systemIndigo),
+                activeIcon: Icon(
+                  CupertinoIcons.person_fill,
+                  color: CupertinoColors.activeBlue,
+                ),
                 icon: Icon(CupertinoIcons.person),
                 label: 'account',
               ),

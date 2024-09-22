@@ -1,5 +1,6 @@
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/myads/display_ads.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/myads/fav_ads.dart';
 import 'package:college_project/UIPart/Providers/ads_index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,12 +15,6 @@ class MyAds extends ConsumerStatefulWidget {
 
 class _MyAdsState extends ConsumerState<MyAds> {
   late AuthHandler handler;
-
-  Widget favouriteAds() {
-    return const Center(
-      child: Text('Favourite Ads'),
-    );
-  }
 
   @override
   void initState() {
@@ -142,7 +137,7 @@ class _MyAdsState extends ConsumerState<MyAds> {
                     padding: const EdgeInsets.all(10),
                     child: index == 0 || index == 1
                         ? DisplayAds(index: index)
-                        : favouriteAds(),
+                        : const FavAds(),
                   ),
                 )
               ],

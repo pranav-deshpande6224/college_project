@@ -113,7 +113,7 @@ class _SellState extends State<Sell> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: CupertinoColors.systemBrown,
+                    color: CupertinoColors.systemGrey,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(

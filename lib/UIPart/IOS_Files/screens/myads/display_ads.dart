@@ -84,6 +84,7 @@ class _DisplayAdsState extends ConsumerState<DisplayAds> {
   Widget showSpinner() {
     return const Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CupertinoActivityIndicator(),
           SizedBox(
@@ -117,11 +118,12 @@ class _DisplayAdsState extends ConsumerState<DisplayAds> {
           return snapshot.data!.isEmpty
               ? const Center(
                   child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('No Active Ads'),
-                  ],
-                ))
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('No Active Ads'),
+                    ],
+                  ),
+                )
               : ListView.builder(
                   itemCount: snapshot.data!.length,
                   itemBuilder: (ctx, index) {

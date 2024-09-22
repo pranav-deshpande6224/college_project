@@ -258,10 +258,12 @@ class _HomeState extends ConsumerState<Home> {
                         final ad = snapshot.data![index];
                         return GestureDetector(
                           onTap: () {
-                            Navigator.of(context).push(
+                            Navigator.of(context, rootNavigator: true).push(
                               CupertinoPageRoute(
                                 builder: (ctx) {
-                                  return ProductDetailScreen();
+                                  return ProductDetailScreen(
+                                    item: ad,
+                                  );
                                 },
                               ),
                             );

@@ -29,16 +29,19 @@ class AdUploaded extends StatelessWidget {
                 height: 50,
                 width: double.infinity,
                 child: CupertinoButton(
-                    color: CupertinoColors.activeBlue,
-                    child: Text(
-                      'Continue',
-                      style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+                  color: CupertinoColors.activeBlue,
+                  child: Text(
+                    'Continue',
+                    style: GoogleFonts.roboto(
+                      fontWeight: FontWeight.bold,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    }),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                ),
               )
             ],
           ),
