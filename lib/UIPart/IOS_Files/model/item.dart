@@ -22,18 +22,30 @@ class Item {
       imageList.add(image);
     }
     return imageList;
-
   }
-  factory Item.fromJson(Map<String, dynamic> json, String id, String createdAt) {
+
+  factory Item.fromJson(
+      Map<String, dynamic> json, String id, String createdAt) {
     return Item(
       id: id,
       adTitle: json['adTitle'],
       adDescription: json['adDescription'],
       createdAt: createdAt,
       price: json['price'],
-      images: getImages( json['images']),
+      images: getImages(json['images']),
       postedBy: json['postedBy'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'adTitle': adTitle,
+      'adDescription': adDescription,
+      'price': price,
+      'images': images,
+      'postedBy': postedBy,
+      'createdAt': createdAt,
+    };
   }
 }
 

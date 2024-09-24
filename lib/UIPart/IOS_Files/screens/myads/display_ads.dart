@@ -20,7 +20,7 @@ class DisplayAds extends ConsumerStatefulWidget {
 class _DisplayAdsState extends ConsumerState<DisplayAds> {
   late AuthHandler handler;
   Future<List<Item>>? ads;
-  Future<List<Item>>? value;
+  Future<List<Item>>? soldAds;
   Future<List<Item>> activeAdsAPI() async {
     List<Item> ads = [];
     try {
@@ -66,10 +66,8 @@ class _DisplayAdsState extends ConsumerState<DisplayAds> {
             .get();
 
         for (final doc in data.docs) {
-          Timestamp timeStamp = doc.data()['createdAt'];
-          final dateString =
-              DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          ads.add(Item.fromJson(doc.data(), doc.id, dateString));
+          String date = doc.data()['createdAt'];
+          ads.add(Item.fromJson(doc.data(), doc.id, date));
         }
         return ads;
       } else {
@@ -78,6 +76,33 @@ class _DisplayAdsState extends ConsumerState<DisplayAds> {
       }
     } catch (e) {
       throw e.toString();
+    }
+  }
+
+  void itemSold(Item item) async {
+    try {
+      // First remove from the Active Ads
+      // Add that item to the sold Ads
+      // Remove that item at the front end
+      if (handler.user != null) {
+        await handler.fireStore
+            .collection('users')
+            .doc(handler.user!.uid)
+            .collection('MyActiveAds')
+            .doc(item.id)
+            .delete();
+        await handler.fireStore
+            .collection('users')
+            .doc(handler.user!.uid)
+            .collection('MySoldAds')
+            .doc(item.id)
+            .set(item.toJson());
+        
+      } else {
+        // Navigate to Login screen
+      }
+    } catch (e) {
+      print(e.toString());
     }
   }
 
@@ -101,10 +126,10 @@ class _DisplayAdsState extends ConsumerState<DisplayAds> {
     if (widget.index == 0) {
       ads = activeAdsAPI();
     } else {
-      value = soldAdsAPI();
+      soldAds = soldAdsAPI();
     }
     return FutureBuilder<List<Item>>(
-      future: widget.index == 0 ? ads : value,
+      future: widget.index == 0 ? ads : soldAds,
       builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return showSpinner();
@@ -129,6 +154,8 @@ class _DisplayAdsState extends ConsumerState<DisplayAds> {
                   itemBuilder: (ctx, index) {
                     return AdCard(
                       ad: snapshot.data![index],
+                      adSold: itemSold,
+                      isSold: false,
                     );
                   },
                 );
@@ -149,6 +176,8 @@ class _DisplayAdsState extends ConsumerState<DisplayAds> {
                   itemBuilder: (ctx, index) {
                     return AdCard(
                       ad: snapshot.data![index],
+                      adSold: itemSold,
+                      isSold: true,
                     );
                   },
                 );

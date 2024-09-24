@@ -1,6 +1,5 @@
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/myads/display_ads.dart';
-import 'package:college_project/UIPart/IOS_Files/screens/myads/fav_ads.dart';
 import 'package:college_project/UIPart/Providers/ads_index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,44 +99,13 @@ class _MyAdsState extends ConsumerState<MyAds> {
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              if (index != 2) {
-                                ref.read(adsIndexProvider.notifier).setIndex(2);
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: index == 2
-                                    ? CupertinoColors.activeBlue
-                                    : null,
-                                border: Border.all(width: 0.2),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'Favourite Ads',
-                                  style: GoogleFonts.roboto(
-                                    fontWeight:
-                                        index == 2 ? FontWeight.bold : null,
-                                    color: index == 2
-                                        ? CupertinoColors.white
-                                        : null,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
                       ],
                     )),
                 Expanded(
                   flex: 9,
                   child: Padding(
                     padding: const EdgeInsets.all(10),
-                    child: index == 0 || index == 1
-                        ? DisplayAds(index: index)
-                        : const FavAds(),
+                    child: DisplayAds(index: index),
                   ),
                 )
               ],

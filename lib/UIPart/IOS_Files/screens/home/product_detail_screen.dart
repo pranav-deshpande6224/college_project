@@ -1,27 +1,34 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Item item;
-  const ProductDetailScreen({required this.item, super.key});
+  final bool yourAd;
+  const ProductDetailScreen(
+      {required this.item, required this.yourAd, super.key});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  late AuthHandler handler;
+  @override
+  void initState() {
+    handler = AuthHandler.authHandlerInstance;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        trailing: CupertinoButton(
-          padding: const EdgeInsetsDirectional.all(0),
-          child: const Icon(
-            CupertinoIcons.heart,
-          ),
-          onPressed: () {},
+        middle: Text(
+          'Product Details',
+          style: GoogleFonts.roboto(),
         ),
       ),
       child: SafeArea(
@@ -130,7 +137,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             width: 10,
                           ),
                           Text(
-                            widget.item.postedBy,
+                            widget.yourAd ? 'You' : widget.item.postedBy,
                             style: GoogleFonts.roboto(
                               fontSize: 22,
                             ),
@@ -142,26 +149,28 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
             ),
-            Expanded(
-              flex: 1,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SizedBox(
-                  height: 50,
-                  width: double.infinity,
-                  child: CupertinoButton(
-                    color: CupertinoColors.activeBlue,
-                    child: Text(
-                      'Chat Now',
-                      style: GoogleFonts.roboto(
-                        fontWeight: FontWeight.bold,
+            widget.yourAd
+                ? const SizedBox()
+                : Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        height: 50,
+                        width: double.infinity,
+                        child: CupertinoButton(
+                          color: CupertinoColors.activeBlue,
+                          child: Text(
+                            'Chat Now',
+                            style: GoogleFonts.roboto(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () {},
+                        ),
                       ),
                     ),
-                    onPressed: () {},
                   ),
-                ),
-              ),
-            ),
           ],
         ),
       ),

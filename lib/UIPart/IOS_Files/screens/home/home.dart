@@ -110,7 +110,8 @@ class _HomeState extends ConsumerState<Home> {
           Timestamp createdAt = originalAdSnapshot.get('createdAt');
           String formattedDate =
               DateFormat('dd/MM/yyyy').format(createdAt.toDate());
-          final adData = Item.fromJson(snaphsot, doc.id, formattedDate);
+          final adData =
+              Item.fromJson(snaphsot, originalAdSnapshot.id, formattedDate);
           allItems.add(adData);
         }
       }
@@ -263,6 +264,7 @@ class _HomeState extends ConsumerState<Home> {
                                 builder: (ctx) {
                                   return ProductDetailScreen(
                                     item: ad,
+                                    yourAd: false,
                                   );
                                 },
                               ),
@@ -282,18 +284,20 @@ class _HomeState extends ConsumerState<Home> {
                                   flex: 9,
                                   child: Stack(
                                     children: [
-                                      ClipOval(
+                                      ClipRRect(
                                         child: Image.asset(
                                           'assets/images/placeholder.jpg',
                                         ),
                                       ),
                                       Positioned(
-                                        top: 2,
-                                        left: 2,
-                                        right: 2,
-                                        bottom: 2,
-                                        child: Image.network(
-                                          ad.images[0],
+                                        top: 0,
+                                        left: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        child: ClipRRect(
+                                          child: Image.network(
+                                            ad.images[0],
+                                          ),
                                         ),
                                       )
                                     ],

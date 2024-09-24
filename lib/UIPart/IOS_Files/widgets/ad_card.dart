@@ -1,161 +1,243 @@
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AdCard extends StatelessWidget {
   final Item ad;
-  const AdCard({required this.ad, super.key});
+  final bool isSold;
+  final void Function(Item item) adSold;
+  const AdCard(
+      {required this.ad,
+      required this.adSold,
+      required this.isSold,
+      super.key});
+
+  Widget getWidget(BuildContext context) {
+    if (isSold) {
+      return Expanded(
+        flex: 4,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(width: 0.5),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(width: 0.5),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      return Expanded(
+        flex: 4,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(width: 0.5),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      // adSold(ad);
+                      showCupertinoDialog(
+                          context: context,
+                          builder: (ctx) {
+                            return CupertinoAlertDialog(
+                                title: Text(
+                                  'Alert',
+                                  style: GoogleFonts.roboto(),
+                                ),
+                                content: Text(
+                                  'Is this Item Sold?',
+                                  style: GoogleFonts.roboto(),
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text(
+                                      'No',
+                                      style: GoogleFonts.roboto(
+                                          color:
+                                              CupertinoColors.destructiveRed),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(ctx).pop();
+                                    },
+                                  ),
+                                  CupertinoDialogAction(
+                                    child: Text('yes',
+                                        style: GoogleFonts.roboto()),
+                                    onPressed: () {
+                                      adSold(ad);
+                                      Navigator.of(ctx).pop();
+                                    },
+                                  ),
+                                ]);
+                          });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          width: 2,
+                          color: CupertinoColors.activeBlue,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              CupertinoIcons.check_mark_circled,
+                              size: 25,
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              'Mark as Sold',
+                              style: GoogleFonts.roboto(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      print('Edit Product');
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          width: 2,
+                          color: CupertinoColors.black,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              CupertinoIcons.pencil,
+                              color: CupertinoColors.black,
+                              size: 25,
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            Text(
+                              'Edit Product',
+                              style: GoogleFonts.roboto(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         AspectRatio(
-          aspectRatio: 1.8,
+          aspectRatio: 2,
           child: Container(
             decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black
-                      .withOpacity(0.2), 
-                  spreadRadius: 1, 
-                  blurRadius: 10, 
-                  offset:
-                      const Offset(0, 5),
-                ),
-              ],
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(4),
               border: Border.all(width: 0.5),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  flex: 7,
+                  flex: 6,
                   child: Row(
                     children: [
                       Expanded(
-                        flex: 5,
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Stack(
-                                children: [
-                                  Image.asset(
-                                    width: 95,
-                                    'assets/images/placeholder.jpg',
-                                  ),
-                                  Positioned(
-                                    top: 0,
-                                    bottom: 0,
-                                    left: 0,
-                                    right: 0,
-                                    child: Image.network(
-                                      ad.images[0],
-                                    ),
-                                  )
-                                ],
+                        flex: 3,
+                        child: ClipRRect(
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Image.asset(
+                                    'assets/images/placeholder.jpg'),
                               ),
-                            ),
-                            Container(
-                              width: 0.5,
-                              height: double.infinity,
-                              color: Colors.black,
-                            )
-                          ],
+                              Positioned(
+                                top: 5,
+                                left: 5,
+                                right: 5,
+                                child: ClipRRect(
+                                  child: Image.network(
+                                    ad.images[0],
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                       Expanded(
-                        flex: 10,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Text(
-                                ad.adTitle,
-                                style: GoogleFonts.roboto(
-                                    fontSize: 18, fontWeight: FontWeight.w500,),
-                              ),
+                        flex: 7,
+                        child: Container(
+                          decoration: const BoxDecoration(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ad.adTitle,
+                                  style: GoogleFonts.roboto(),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Text(
+                                  '₹ ${ad.price.toInt()}',
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              ],
                             ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            Text(
-                              '₹ ${ad.price.toInt()}',
-                              style: GoogleFonts.roboto(),
-                            ),
-                          ],
+                          ),
                         ),
                       )
                     ],
                   ),
                 ),
-                Container(
-                  width: double.infinity,
-                  height: 1,
-                  color: Colors.black,
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                        left: 8, right: 8, bottom: 8, top: 5),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: CupertinoColors.activeBlue,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Mark as Sold',
-                                    style: GoogleFonts.roboto(
-                                      color: CupertinoColors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 10),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.systemGrey,
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'Edit Product',
-                                    style: GoogleFonts.roboto(
-                                      color: CupertinoColors.black,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                )
+                getWidget(context),
               ],
             ),
           ),
