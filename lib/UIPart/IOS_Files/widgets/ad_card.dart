@@ -75,7 +75,7 @@ class AdCard extends StatelessWidget {
                                     },
                                   ),
                                   CupertinoDialogAction(
-                                    child: Text('yes',
+                                    child: Text('Yes',
                                         style: GoogleFonts.roboto()),
                                     onPressed: () {
                                       adSold(ad);
