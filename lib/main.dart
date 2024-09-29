@@ -33,7 +33,7 @@ Future<bool> checkUserLoggedIn() async {
     if (user.uid == uid) {
       if (user.emailVerified) {
         AuthHandler handler = AuthHandler.authHandlerInstance;
-        handler.user = user;
+        handler.newUser.user = user;
         return true;
       } else {
         await FirebaseAuth.instance.signOut();

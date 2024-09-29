@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:college_project/Authentication/IOS_Files/Models/new_user.dart';
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/email_verification.dart';
-import 'package:college_project/Authentication/Providers/spinner.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/bottom_nav_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -16,7 +16,8 @@ class AuthHandler {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final fireStore = FirebaseFirestore.instance;
   final storage = FirebaseStorage.instance;
-  User? user;
+  //User? user;
+  NewUser newUser = NewUser();
 
   showErrorDialog(BuildContext context, String title, String content) {
     if (Platform.isIOS) {
@@ -50,55 +51,88 @@ class AuthHandler {
   }
 
   Future<void> signUp(String email, String password, BuildContext context,
-      WidgetRef ref) async {
+      BuildContext signUpContext, String fName, String lName) async {
     try {
       UserCredential userCredential = await firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
-      user = userCredential.user;
+      newUser.user = userCredential.user;
+      newUser.user!.updateDisplayName('$fName $lName');
+      await storeSignUpData(email, fName, lName);
+      Navigator.pop(signUpContext);
+      Navigator.push(
+        context,
+        CupertinoPageRoute(
+          builder: (ctx) => EmailVerification(
+            email: email,
+          ),
+        ),
+      );
     } on FirebaseAuthException catch (e) {
-      ref.read(spinnerProvider.notifier).isDoneLoading();
       if (e.code == 'weak-password') {
         if (!context.mounted) return;
+        Navigator.pop(signUpContext);
         showErrorDialog(context, 'Alert', 'The password provided is too weak');
       } else if (e.code == 'email-already-in-use') {
         if (!context.mounted) return;
+        Navigator.pop(signUpContext);
         showErrorDialog(context, 'Alert', 'Email already in use');
       }
     } catch (e) {
       if (!context.mounted) return;
+      Navigator.pop(signUpContext);
       showErrorDialog(context, 'Alert', e.toString());
     }
   }
 
   Future<void> signIn(String email, String password, BuildContext context,
-      WidgetRef ref) async {
+      BuildContext loginContext) async {
     try {
       await firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
-      user = firebaseAuth.currentUser;
+      newUser.user = firebaseAuth.currentUser;
+      if (newUser.user!.emailVerified) {
+        final pref = await SharedPreferences.getInstance();
+        await pref.setString('uid', newUser.user!.uid);
+        if (!context.mounted) return;
+        Navigator.of(loginContext).pop();
+        Navigator.of(context).pushAndRemoveUntil(
+          CupertinoPageRoute(
+            builder: (context) => const BottomNavBar(),
+          ),
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        if (!context.mounted) return;
+        Navigator.of(loginContext).pop();
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (ctx) => EmailVerification(
+              email: email,
+            ),
+          ),
+        );
+      }
     } on FirebaseAuthException catch (e) {
-      print(e.code);
-      if (e.code == 'user-not-found') {
+     if (e.code == 'invalid-credential') {
         if (!context.mounted) return;
-        ref.read(loginSpinner.notifier).isDoneLoading();
-        showErrorDialog(context, 'Alert', 'No user found for that email');
-      } else if (e.code == 'INVALID_LOGIN_CREDENTIALS') {
-        if (!context.mounted) return;
-        ref.read(loginSpinner.notifier).isDoneLoading();
+        Navigator.of(loginContext).pop();
         showErrorDialog(context, 'Alert',
             "You might not have an account, or your password could be wrong.");
       } else if (e.code == 'too-many-requests') {
         if (!context.mounted) return;
-        ref.read(loginSpinner.notifier).isDoneLoading();
+        Navigator.of(loginContext).pop();
         showErrorDialog(context, 'Alert',
             "You have entered wrong password too many times. Please try again later.");
+      } else {
+        showErrorDialog(context, 'Alert', e.toString());
       }
     }
   }
 
-  Future<void> googleSignIn(WidgetRef ref, BuildContext context) async {
+  Future<void> googleSignIn(WidgetRef ref, BuildContext context,
+      BuildContext googleSignInContext) async {
     try {
-      ref.read(googleSignInSpinner.notifier).isLoading();
       final googleUser = await GoogleSignIn().signIn();
       final googleAuth = await googleUser?.authentication;
       if (googleAuth != null) {
@@ -107,26 +141,27 @@ class AuthHandler {
           idToken: googleAuth.idToken,
         );
         await firebaseAuth.signInWithCredential(credential);
-        user = firebaseAuth.currentUser;
-        if (user != null) {
-          final isUserExists = await checkUserExistOrNot(user!.email!);
-          if (isUserExists) {
-            ref.read(googleSignInSpinner.notifier).isDoneLoading();
-          } else {
-            await storeSignUpData(user!.email!, user!.displayName!, "");
-            ref.read(googleSignInSpinner.notifier).isDoneLoading();
+        newUser.user = firebaseAuth.currentUser;
+        if (newUser.user != null) {
+          final isUserExists = await checkUserExistOrNot(newUser.user!.email!);
+          if (!isUserExists) {
+            await storeSignUpData(
+                newUser.user!.email!,
+                newUser.user!.displayName!.split('')[0],
+                newUser.user!.displayName!.split('')[1]);
           }
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('uid', user!.uid);
+          await prefs.setString('uid', newUser.user!.uid);
           if (context.mounted) {
+            Navigator.of(googleSignInContext).pop();
             moveToHome(context);
           }
         }
       } else {
-        ref.read(googleSignInSpinner.notifier).isDoneLoading();
+        Navigator.of(googleSignInContext).pop();
       }
     } on FirebaseAuthException catch (e) {
-      ref.read(googleSignInSpinner.notifier).isDoneLoading();
+      Navigator.of(googleSignInContext).pop();
       if (!context.mounted) return;
       showErrorDialog(context, 'Alert', e.toString());
     }
@@ -151,18 +186,22 @@ class AuthHandler {
 
   Future<void> storeSignUpData(
       String email, String firstName, String lastName) async {
-    if (user != null) {
-      await fireStore.collection('users').doc(user!.uid).set({
-        'email': email,
-        'firstName': firstName,
-        'lastName': lastName,
-      });
+    if (newUser.user != null) {
+      try {
+        await fireStore.collection('users').doc(newUser.user!.uid).set({
+          'email': email,
+          'firstName': firstName,
+          'lastName': lastName,
+        });
+      } catch (e) {
+        print(e.toString());
+      }
     }
   }
 
   void sendLinkToEmail() {
-    if (user != null) {
-      user!.sendEmailVerification();
+    if (newUser.user != null) {
+      newUser.user!.sendEmailVerification();
     }
   }
 
@@ -178,23 +217,25 @@ class AuthHandler {
     }
   }
 
-  Future<void> forgetPassword(
-      String email, BuildContext context, WidgetRef ref) async {
+  Future<void> forgetPassword(String email, BuildContext context,
+      BuildContext foregetPasswordContext) async {
     final isEmailExists = await checkUserExistOrNot(email);
     if (!isEmailExists) {
       if (!context.mounted) return;
-      ref.read(submitSpinner.notifier).isDoneLoading();
+      print('Reaching here in forgetpassword');
+      Navigator.of(foregetPasswordContext).pop();
       showErrorDialog(context, 'Alert',
           'No user found for that email, if you are new user, please sign up.');
     } else {
       try {
         await firebaseAuth.sendPasswordResetEmail(email: email);
-        ref.read(submitSpinner.notifier).isDoneLoading();
         if (!context.mounted) return;
+        Navigator.of(foregetPasswordContext).pop();
         showAlert(context, email);
       } on FirebaseAuthException catch (e) {
         if (!context.mounted) return;
-        ref.read(submitSpinner.notifier).isDoneLoading();
+        Navigator.of(foregetPasswordContext).pop();
+
         showErrorDialog(
           context,
           'Alert',

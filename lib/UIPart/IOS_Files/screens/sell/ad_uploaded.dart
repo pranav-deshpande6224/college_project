@@ -8,43 +8,87 @@ class AdUploaded extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 100, left: 12, right: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(CupertinoIcons.check_mark_circled_solid, size: 100),
-              const SizedBox(
-                height: 20,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              flex: 8,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(CupertinoIcons.check_mark_circled_solid,
+                        size: 100),
+                    const SizedBox(
+                      height: 20,
+                    ),
+                    Text(
+                      'Your Ad Posted Successfully',
+                      style: GoogleFonts.roboto(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Text(
-                'Ad Uploaded Successfully',
-                style: GoogleFonts.roboto(
-                    fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              SizedBox(
-                height: 50,
-                width: double.infinity,
-                child: CupertinoButton(
-                  color: CupertinoColors.activeBlue,
-                  child: Text(
-                    'Continue',
-                    style: GoogleFonts.roboto(
-                      fontWeight: FontWeight.bold,
+            ),
+            Expanded(
+                flex: 2,
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 12, right: 12),
+                    child: SizedBox(
+                      height: 50,
+                      width: double.infinity,
+                      child: CupertinoButton(
+                        color: CupertinoColors.activeBlue,
+                        child: Text(
+                          'Continue',
+                          style: GoogleFonts.roboto(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                          Navigator.of(context).pop();
+                        },
+                      ),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  },
-                ),
-              )
-            ],
-          ),
+                )),
+            // const Icon(CupertinoIcons.check_mark_circled_solid, size: 100),
+            // const SizedBox(
+            //   height: 20,
+            // ),
+            // Text(
+            //   'Ad Uploaded Successfully',
+            //   style: GoogleFonts.roboto(
+            //       fontSize: 20, fontWeight: FontWeight.bold),
+            // ),
+            // const SizedBox(
+            //   height: 30,
+            // ),
+            // SizedBox(
+            //   height: 50,
+            //   width: double.infinity,
+            //   child: CupertinoButton(
+            //     color: CupertinoColors.activeBlue,
+            //     child: Text(
+            //       'Continue',
+            //       style: GoogleFonts.roboto(
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //     onPressed: () {
+            //       Navigator.of(context).pop();
+            //       Navigator.of(context).pop();
+            //       Navigator.of(context).pop();
+            //     },
+            //   ),
+            // )
+          ],
         ),
       ),
     );

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Item {
   final String id;
   final String adTitle;
@@ -6,6 +8,8 @@ class Item {
   final double price;
   final List<String> images;
   final String postedBy;
+  final String categoryName;
+  final String subCategoryName;
   const Item({
     required this.id,
     required this.adTitle,
@@ -14,6 +18,8 @@ class Item {
     required this.price,
     required this.images,
     required this.postedBy,
+    required this.categoryName,
+    required this.subCategoryName,
   });
 
   static List<String> getImages(List<dynamic> images) {
@@ -34,17 +40,21 @@ class Item {
       price: json['price'],
       images: getImages(json['images']),
       postedBy: json['postedBy'],
+      categoryName: json['categoryName'],
+      subCategoryName: json['subCategoryName'],
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String,dynamic> toJson(){
     return {
-      'adTitle': adTitle,
-      'adDescription': adDescription,
-      'price': price,
-      'images': images,
-      'postedBy': postedBy,
-      'createdAt': createdAt,
+      'adTitle':adTitle,
+      'adDescription':adDescription,
+      'price':price,
+      'images':images,
+      'postedBy':postedBy,
+      'categoryName':categoryName,
+      'subCategoryName':subCategoryName,
+      'createdAt':FieldValue.serverTimestamp(),
     };
   }
 }
@@ -60,5 +70,7 @@ class Phones extends Item {
     required super.price,
     required super.images,
     required super.postedBy,
+    required super.categoryName,
+    required super.subCategoryName,
   });
 }

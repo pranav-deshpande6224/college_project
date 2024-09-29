@@ -95,14 +95,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       Text(
                         '₹ ${widget.item.price.toInt()}',
-                        style: GoogleFonts.roboto(fontSize: 25),
+                        style: GoogleFonts.roboto(
+                            fontSize: 25, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(
                         height: 10,
                       ),
                       Text(
                         widget.item.adTitle,
-                        style: GoogleFonts.roboto(fontSize: 20),
+                        style: GoogleFonts.roboto(
+                          fontSize: 20,
+                        ),
                       ),
                       const SizedBox(
                         height: 10,
@@ -110,6 +113,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       Text(
                         'Description',
                         style: GoogleFonts.lato(
+                          fontWeight: FontWeight.w600,
                           fontSize: 20,
                           color: CupertinoColors.activeBlue,
                         ),
@@ -124,24 +128,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       const SizedBox(
                         height: 10,
                       ),
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Posted By',
                             style: GoogleFonts.lato(
+                              fontWeight: FontWeight.w600,
                               fontSize: 18,
                               color: CupertinoColors.activeBlue,
                             ),
                           ),
-                          const SizedBox(
-                            width: 10,
-                          ),
                           Text(
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             widget.yourAd ? 'You' : widget.item.postedBy,
                             style: GoogleFonts.roboto(
                               fontSize: 22,
                             ),
                           ),
+                          
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Column(
+                        children: [
+                          
                         ],
                       )
                     ],

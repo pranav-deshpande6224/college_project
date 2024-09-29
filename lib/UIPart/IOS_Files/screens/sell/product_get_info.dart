@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
-import 'package:college_project/Authentication/Providers/spinner.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/sell/ad_uploaded.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/sell/phone_brands.dart';
 import 'package:college_project/UIPart/Providers/image_selected.dart';
@@ -127,29 +126,39 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     final fbStorage = handler.storage;
     final fbCloudFireStore = handler.fireStore;
     final uuid = const Uuid().v4();
-    if (handler.user?.uid == null) {
+    if (handler.newUser.user?.uid == null) {
       // then i need to write the code to move to the login screen.
       Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
           CupertinoPageRoute(builder: (ctx) => const LoginIos()),
           (Route<dynamic> route) => false);
       return;
     }
-    ref.read(submitAdPostSpinner.notifier).isLoading();
-    print(ref.read(imageProvider).length);
+    print(handler.newUser.user);
+    late BuildContext popContext;
+    showCupertinoDialog(
+        context: context,
+        builder: (ctx) {
+          popContext = ctx;
+          return const Center(
+            child: CupertinoActivityIndicator(
+              radius: 15,
+            ),
+          );
+        });
+    //ref.read(submitAdPostSpinner.notifier).isLoading();
     for (int i = 0; i < ref.read(imageProvider).length; i++) {
-      String uniqueName = '${handler.user!.uid}/$uuid/image_$i.jpg';
+      String uniqueName = '${handler.newUser. user!.uid}/$uuid/image_$i.jpg';
       UploadTask task = fbStorage
           .ref(uniqueName)
           .putFile(File(ref.read(imageProvider)[i].path));
       await task.whenComplete(() => null);
       String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
-      print(downloadURL);
       url.add(downloadURL);
     }
     if (widget.subCategoryName == Constants.mobilePhone) {
       CollectionReference myActiveAdsCollection = fbCloudFireStore
           .collection('users')
-          .doc(handler.user!.uid)
+          .doc(handler.newUser.user!.uid)
           .collection('MyActiveAds');
       final timeStamp = FieldValue.serverTimestamp();
       DocumentReference adDocRef = await myActiveAdsCollection.add({
@@ -159,7 +168,9 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
         'brand': _brandController.text.trim(),
         'images': url,
         'createdAt': timeStamp,
-        'postedBy': handler.user!.displayName
+        'postedBy': handler.newUser.user?.displayName ?? '${handler.newUser.firstName} ${handler.newUser.lastName}',
+        'categoryName': widget.categoryName,
+        'subCategoryName': widget.subCategoryName,
       });
       CollectionReference allAdsCollection =
           fbCloudFireStore.collection('AllAds');
@@ -172,8 +183,6 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
               adDocRef, // Store reference to the ad document in MyActiveAds
           'createdAt': timeStamp
         });
-      } else {
-        // I can Edit the Product here
       }
       CollectionReference categoryCollection =
           fbCloudFireStore.collection('Category');
@@ -199,9 +208,13 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     if (!context.mounted) {
       return;
     }
-    Navigator.of(context)
-        .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
-    ref.read(submitAdPostSpinner.notifier).isDoneLoading();
+    //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
+    resetFields();
+    Navigator.of(popContext).pop();
+    if (context.mounted) {
+      Navigator.of(context)
+          .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
+    }
   }
 
   bool checkAtleastOneImage() {
@@ -432,29 +445,19 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
   }
 
   Widget getCupertinoButton() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final isLoading = ref.watch(submitAdPostSpinner);
-        return SizedBox(
-          height: 50,
-          width: double.infinity,
-          child: CupertinoButton(
-            color: CupertinoColors.activeBlue,
-            child: isLoading
-                ? const CupertinoActivityIndicator(
-                    color: CupertinoColors.white,
-                  )
-                : Text(
-                    'Post Your Ad',
-                    style: GoogleFonts.roboto(
-                        fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-            onPressed: () {
-              _nextPressed();
-            },
-          ),
-        );
-      },
+    return SizedBox(
+      height: 50,
+      width: double.infinity,
+      child: CupertinoButton(
+        color: CupertinoColors.activeBlue,
+        child: Text(
+          'Post Your Ad',
+          style: GoogleFonts.roboto(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        onPressed: () {
+          _nextPressed();
+        },
+      ),
     );
   }
 
@@ -666,7 +669,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     );
   }
 
-  Widget tabletSubCategory() {
+  Widget tabletSubCategory(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: double.infinity,
@@ -821,10 +824,21 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 flex: 8,
                 child: images.isEmpty
                     ? Center(
-                        child: Image.asset(
-                          'assets/images/upload.jpg',
-                          height: 100,
-                          width: 100,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'assets/images/upload.jpg',
+                              height: 100,
+                              width: 100,
+                            ),
+                            Text(
+                              'Press + Button to add images',
+                              style: GoogleFonts.roboto(
+                                  fontSize: 18,
+                                  color: CupertinoColors.systemGrey),
+                            )
+                          ],
                         ),
                       )
                     : Consumer(
@@ -993,6 +1007,10 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
       context: context,
       builder: (ctx) {
         return CupertinoActionSheet(
+          title: Text(
+            'Select Either Camera or Gallery too Upload Images',
+            style: GoogleFonts.roboto(),
+          ),
           actions: [
             CupertinoActionSheetAction(
               onPressed: () {
@@ -1006,6 +1024,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
             ),
             CupertinoActionSheetAction(
               onPressed: () {
+                Navigator.of(ctx).pop();
                 _galleryPressed(ctx);
               },
               child: Text('Gallery', style: GoogleFonts.roboto()),
@@ -1025,7 +1044,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     );
   }
 
-  Widget changeUIAccordingly(String subCategoryName) {
+  Widget changeUIAccordingly(String subCategoryName, BuildContext context) {
     if (subCategoryName == Constants.mobilePhone) {
       return GestureDetector(
           onTap: () {
@@ -1033,7 +1052,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           },
           child: mobileSubCategory());
     } else if (subCategoryName == Constants.tablet) {
-      return tabletSubCategory();
+      return tabletSubCategory(context);
     } else if (subCategoryName == Constants.mobileChargerLaptopCharger) {
       return chargerSubCategory();
     } else {
@@ -1162,7 +1181,6 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     ref.read(priceError.notifier).updateError('');
     ref.read(imageProvider.notifier).reset();
     ref.read(imageSelectProvider.notifier).changeIndex(0);
-    ref.read(imageProvider.notifier).reset();
   }
 
   @override
@@ -1186,9 +1204,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
         onTap: () {
           unfocusFields();
         },
-        child: changeUIAccordingly(
-          widget.subCategoryName,
-        ),
+        child: changeUIAccordingly(widget.subCategoryName, context),
       ),
     );
   }

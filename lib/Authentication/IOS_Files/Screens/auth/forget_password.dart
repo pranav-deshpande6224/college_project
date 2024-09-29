@@ -1,6 +1,5 @@
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
-import 'package:college_project/Authentication/Providers/spinner.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -32,8 +31,20 @@ class _ForgetPasswordState extends ConsumerState<ForgetPassword> {
     }
     final emailError = ref.read(emailErrorProvider);
     if (emailError.isEmpty) {
-      ref.read(submitSpinner.notifier).isLoading();
-      await handler.forgetPassword(_emailController.text.trim(), context, ref);
+      late BuildContext forgetPasswordContext;
+      showCupertinoDialog(
+        context: context,
+        builder: (ctx) {
+          forgetPasswordContext = ctx;
+          handler.forgetPassword(
+              _emailController.text.trim(), context, forgetPasswordContext);
+          return const Center(
+            child: CupertinoActivityIndicator(
+              radius: 15,
+            ),
+          );
+        },
+      );
     }
   }
 
@@ -144,32 +155,23 @@ class _ForgetPasswordState extends ConsumerState<ForgetPassword> {
                 const SizedBox(
                   height: 20,
                 ),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final isloading = ref.watch(submitSpinner);
-                    return SizedBox(
-                      height: 50,
-                      width: double.infinity,
-                      child: CupertinoButton(
-                        color: CupertinoColors.activeBlue,
-                        onPressed: () {
-                          _submitPressed();
-                        },
-                        child: isloading
-                            ? const CupertinoActivityIndicator(
-                                color: CupertinoColors.white,
-                              )
-                            : Text(
-                                'Submit',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                SizedBox(
+                  height: 50,
+                  width: double.infinity,
+                  child: CupertinoButton(
+                    color: CupertinoColors.activeBlue,
+                    onPressed: () {
+                      _submitPressed();
+                    },
+                    child: Text(
+                      'Submit',
+                      style: GoogleFonts.roboto(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                )
               ],
             ),
           ),

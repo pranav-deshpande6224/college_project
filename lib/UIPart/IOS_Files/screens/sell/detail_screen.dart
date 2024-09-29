@@ -35,7 +35,7 @@ class DetailScreen extends StatelessWidget {
                 CupertinoListTile(
                   trailing: const Icon(
                     CupertinoIcons.right_chevron,
-                    color: CupertinoColors.systemIndigo,
+                    color: CupertinoColors.activeBlue,
                   ),
                   title: Text(
                     subCategoryList[index],

@@ -1,14 +1,11 @@
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/email_verification.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
-import 'package:college_project/Authentication/Providers/spinner.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../UIPart/IOS_Files/screens/bottom_nav_bar.dart';
 import '../../../Providers/password_provider.dart';
 import 'forget_password.dart';
 import 'sign_up.dart';
@@ -43,6 +40,7 @@ class _LoginIosState extends ConsumerState<LoginIos> {
   }
 
   void _loginPressed() async {
+    late BuildContext loginContext;
     if (_emailController.text.trim().isEmpty) {
       ref
           .read(emailErrorProvider.notifier)
@@ -71,31 +69,22 @@ class _LoginIosState extends ConsumerState<LoginIos> {
     final passwordError = ref.read(passwordErrorProvider);
     if (emailError.isEmpty && passwordError.isEmpty) {
       unFocusTextFields();
-      ref.read(loginSpinner.notifier).isLoading();
-      await handler.signIn(_emailController.text.trim(),
-          _passwordController.text.trim(), context, ref);
-      if (handler.user != null) {
-        if (handler.user!.emailVerified) {
-          final pref = await SharedPreferences.getInstance();
-          await pref.setString('uid', handler.user!.uid);
-          ref.read(loginSpinner.notifier).isDoneLoading();
-          moveToHome();
-        } else {
-          ref.read(loginSpinner.notifier).isDoneLoading();
-          moveToEmailVerification();
-        }
-      }
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            loginContext = ctx;
+            handler.signIn(_emailController.text.trim(),
+                _passwordController.text.trim(), context, loginContext);
+            return const Center(
+              child: CupertinoActivityIndicator(
+                color: CupertinoColors.black,
+                radius: 15,
+              ),
+            );
+          });
     }
   }
 
-  void moveToHome() {
-    Navigator.of(context).pushAndRemoveUntil(
-      CupertinoPageRoute(
-        builder: (context) => const BottomNavBar(),
-      ),
-      (Route<dynamic> route) => false,
-    );
-  }
 
   void unFocusTextFields() {
     _emailFocusNode.unfocus();
@@ -315,31 +304,22 @@ class _LoginIosState extends ConsumerState<LoginIos> {
                 const SizedBox(
                   height: 20,
                 ),
-                Consumer(
-                  builder: (context, ref, child) {
-                    final isLoading = ref.watch(loginSpinner);
-                    return SizedBox(
-                      height: 50,
-                      width: double.infinity,
-                      child: CupertinoButton(
-                        color: CupertinoColors.activeBlue,
-                        onPressed: () {
-                          _loginPressed();
-                        },
-                        child: isLoading
-                            ? const CupertinoActivityIndicator(
-                                color: CupertinoColors.white,
-                              )
-                            : Text(
-                                'Login',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                SizedBox(
+                  height: 50,
+                  width: double.infinity,
+                  child: CupertinoButton(
+                    color: CupertinoColors.activeBlue,
+                    onPressed: () {
+                      _loginPressed();
+                    },
+                    child: Text(
+                      'Login',
+                      style: GoogleFonts.roboto(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
                 const SizedBox(
                   height: 20,
@@ -377,25 +357,28 @@ class _LoginIosState extends ConsumerState<LoginIos> {
                     const Spacer(),
                     GestureDetector(
                       onTap: () {
-                        handler.googleSignIn(ref, context);
+                        late BuildContext googleSignInContext;
+                        showCupertinoDialog(
+                            context: context,
+                            builder: (ctx) {
+                              googleSignInContext = ctx;
+                              handler.googleSignIn(
+                                  ref, context, googleSignInContext);
+                              return const Center(
+                                child: CupertinoActivityIndicator(
+                                  radius: 15,
+                                ),
+                              );
+                            });
                       },
                       child: CircleAvatar(
                         backgroundColor: CupertinoColors.white,
                         radius: 30,
-                        child: Consumer(
-                          builder: (context, ref, child) {
-                            final isLoading = ref.watch(googleSignInSpinner);
-                            return isLoading
-                                ? const CupertinoActivityIndicator(
-                                    color: CupertinoColors.black,
-                                  )
-                                : Image.asset(
-                                    width: 50,
-                                    height: 50,
-                                    'assets/images/g_transparent.png',
-                                    fit: BoxFit.cover,
-                                  );
-                          },
+                        child: Image.asset(
+                          width: 50,
+                          height: 50,
+                          'assets/images/g_transparent.png',
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
@@ -403,7 +386,9 @@ class _LoginIosState extends ConsumerState<LoginIos> {
                       width: 30,
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        // TODO SignIN WITH APPLE
+                      },
                       child: CircleAvatar(
                         backgroundColor: CupertinoColors.white,
                         radius: 30,

@@ -1,18 +1,55 @@
+import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
+import 'package:college_project/UIPart/Providers/show_sold_ads.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AdCard extends StatelessWidget {
+class AdCard extends ConsumerWidget {
+  final int cardIndex;
   final Item ad;
   final bool isSold;
-  final void Function(Item item) adSold;
+  final void Function(Item item)? adSold;
   const AdCard(
-      {required this.ad,
+      {required this.cardIndex,
+      required this.ad,
       required this.adSold,
       required this.isSold,
       super.key});
 
-  Widget getWidget(BuildContext context) {
+  Future<void> deleteSoldAd(
+      Item ad, WidgetRef ref, BuildContext context) async {
+    AuthHandler handler = AuthHandler.authHandlerInstance;
+    final fireStore = handler.fireStore;
+    late BuildContext anotherContext;
+    try {
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            anotherContext = ctx;
+            return const Center(
+              child: CupertinoActivityIndicator(),
+            );
+          });
+      await fireStore.runTransaction((_) async {
+        fireStore
+            .collection('users')
+            .doc(handler.newUser.user!.uid)
+            .collection('MySoldAds')
+            .doc(ad.id)
+            .delete();
+      }).then((value) {
+        ref.read(showSoldAdsProvider.notifier).deleteSoldAd(ad);
+        if (anotherContext.mounted) {
+          Navigator.of(anotherContext).pop();
+        }
+      });
+    } catch (e) {
+      //TODO:  Show the error message to the USer
+      print(e.toString());
+    }
+  }
+  Widget getWidget(BuildContext context, WidgetRef ref) {
     if (isSold) {
       return Expanded(
         flex: 4,
@@ -24,10 +61,27 @@ class AdCard extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(8),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(width: 0.5),
+            child: GestureDetector(
+              onTap: () async {
+                await deleteSoldAd(ad, ref, context);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    width: 1,
+                    color: CupertinoColors.systemRed,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    'Delete this Ad',
+                    style: GoogleFonts.roboto(
+                      color: CupertinoColors.systemRed,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
@@ -78,8 +132,9 @@ class AdCard extends StatelessWidget {
                                     child: Text('Yes',
                                         style: GoogleFonts.roboto()),
                                     onPressed: () {
-                                      adSold(ad);
                                       Navigator.of(ctx).pop();
+                                      adSold!(ad);
+                                      
                                     },
                                   ),
                                 ]);
@@ -165,7 +220,7 @@ class AdCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
         AspectRatio(
@@ -237,7 +292,7 @@ class AdCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                getWidget(context),
+                getWidget(context, ref),
               ],
             ),
           ),

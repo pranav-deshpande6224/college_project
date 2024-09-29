@@ -2,7 +2,6 @@ import 'package:college_project/Authentication/IOS_Files/Screens/auth/email_veri
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
 import 'package:college_project/Authentication/Providers/password_provider.dart';
-import 'package:college_project/Authentication/Providers/spinner.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -54,6 +53,7 @@ class _SignUpState extends ConsumerState<SignUp> {
   }
 
   void signupPressed() async {
+    late BuildContext signUpContext;
     if (_fnameController.text.trim().isEmpty) {
       ref
           .read(fnameErrorProvider.notifier)
@@ -118,18 +118,24 @@ class _SignUpState extends ConsumerState<SignUp> {
         passwordError.isEmpty &&
         confirmPasswordError.isEmpty) {
       unfocusTextFields();
-      ref.read(spinnerProvider.notifier).isLoading();
-      await handler.signUp(
-          _emailController.text, _passwordController.text, context, ref);
-      await handler.storeSignUpData(_emailController.text.trim(),
-          _fnameController.text.trim(), _lnameController.text.trim());
-      ref.read(spinnerProvider.notifier).isDoneLoading();
-      if (handler.user != null) {
-        // User Successsfully Signed Up
-        if (context.mounted) {
-          navigateToEmailVerification(context);
-        }
-      }
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            signUpContext = ctx;
+            handler.signUp(
+              _emailController.text.trim(),
+              _passwordController.text.trim(),
+              context,
+              signUpContext,
+              _fnameController.text.trim(),
+              _lnameController.text.trim(),
+            );
+            return const Center(
+              child: CupertinoActivityIndicator(
+                radius: 15,
+              ),
+            );
+          });
     }
   }
 
@@ -483,31 +489,22 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 20,
                   ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final isLoading = ref.watch(spinnerProvider);
-                      return SizedBox(
-                        height: 50,
-                        width: double.infinity,
-                        child: CupertinoButton(
-                            color: CupertinoColors.activeBlue,
-                            padding: EdgeInsets.zero,
-                            child: isLoading
-                                ? const CupertinoActivityIndicator(
-                                    color: CupertinoColors.white,
-                                  )
-                                : Text(
-                                    'Sign Up',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                            onPressed: () {
-                              signupPressed();
-                            }),
-                      );
-                    },
+                  SizedBox(
+                    height: 50,
+                    width: double.infinity,
+                    child: CupertinoButton(
+                        color: CupertinoColors.activeBlue,
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          'Sign Up',
+                          style: GoogleFonts.roboto(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        onPressed: () {
+                          signupPressed();
+                        }),
                   )
                 ],
               ),
