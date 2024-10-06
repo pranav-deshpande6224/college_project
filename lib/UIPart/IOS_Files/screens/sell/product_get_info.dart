@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
+import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/sell/ad_uploaded.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/sell/phone_brands.dart';
 import 'package:college_project/UIPart/Providers/image_selected.dart';
@@ -20,8 +21,12 @@ import 'package:uuid/uuid.dart';
 class ProductGetInfo extends ConsumerStatefulWidget {
   final String categoryName;
   final String subCategoryName;
+  final Item? ad;
+  final bool isEditAd;
 
   const ProductGetInfo({
+    required this.isEditAd,
+    required this.ad,
     required this.categoryName,
     required this.subCategoryName,
     super.key,
@@ -133,88 +138,92 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           (Route<dynamic> route) => false);
       return;
     }
-    print(handler.newUser.user);
     late BuildContext popContext;
-    showCupertinoDialog(
-        context: context,
-        builder: (ctx) {
-          popContext = ctx;
-          return const Center(
-            child: CupertinoActivityIndicator(
-              radius: 15,
-            ),
-          );
-        });
-    //ref.read(submitAdPostSpinner.notifier).isLoading();
-    for (int i = 0; i < ref.read(imageProvider).length; i++) {
-      String uniqueName = '${handler.newUser. user!.uid}/$uuid/image_$i.jpg';
-      UploadTask task = fbStorage
-          .ref(uniqueName)
-          .putFile(File(ref.read(imageProvider)[i].path));
-      await task.whenComplete(() => null);
-      String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
-      url.add(downloadURL);
-    }
-    if (widget.subCategoryName == Constants.mobilePhone) {
-      CollectionReference myActiveAdsCollection = fbCloudFireStore
-          .collection('users')
-          .doc(handler.newUser.user!.uid)
-          .collection('MyActiveAds');
-      final timeStamp = FieldValue.serverTimestamp();
-      DocumentReference adDocRef = await myActiveAdsCollection.add({
-        'adTitle': _adTitleController.text.trim(),
-        'adDescription': _adDescriptionController.text.trim(),
-        'price': double.parse(_priceController.text.trim()),
-        'brand': _brandController.text.trim(),
-        'images': url,
-        'createdAt': timeStamp,
-        'postedBy': handler.newUser.user?.displayName ?? '${handler.newUser.firstName} ${handler.newUser.lastName}',
-        'categoryName': widget.categoryName,
-        'subCategoryName': widget.subCategoryName,
-      });
-      CollectionReference allAdsCollection =
-          fbCloudFireStore.collection('AllAds');
-      QuerySnapshot existingPost = await allAdsCollection
-          .where('adReference', isEqualTo: adDocRef)
-          .get();
-      if (existingPost.docs.isEmpty) {
-        allAdsCollection.add({
-          'adReference':
-              adDocRef, // Store reference to the ad document in MyActiveAds
-          'createdAt': timeStamp
-        });
+    fbCloudFireStore.runTransaction((_) async {
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            popContext = ctx;
+            return const Center(
+              child: CupertinoActivityIndicator(
+                radius: 15,
+              ),
+            );
+          });
+      //ref.read(submitAdPostSpinner.notifier).isLoading();
+      for (int i = 0; i < ref.read(imageProvider).length; i++) {
+        String uniqueName = '${handler.newUser.user!.uid}/$uuid/image_$i.jpg';
+        UploadTask task = fbStorage
+            .ref(uniqueName)
+            .putFile(File(ref.read(imageProvider)[i].path));
+        await task.whenComplete(() => null);
+        String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
+        url.add(downloadURL);
       }
-      CollectionReference categoryCollection =
-          fbCloudFireStore.collection('Category');
-      DocumentReference categoryDocRef =
-          categoryCollection.doc(widget.categoryName);
-      DocumentReference subcategoryDocRef = categoryDocRef
-          .collection('Subcategories')
-          .doc(widget.subCategoryName);
-      QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
-          .collection('Ads')
-          .where('adReference', isEqualTo: adDocRef)
-          .get();
-
-      if (existingSubcategoryAd.docs.isEmpty) {
-        // If the ad reference does not exist in the subcategory, add it
-        subcategoryDocRef
+      if (widget.subCategoryName == Constants.mobilePhone) {
+        CollectionReference myActiveAdsCollection = fbCloudFireStore
+            .collection('users')
+            .doc(handler.newUser.user!.uid)
+            .collection('MyActiveAds');
+        final timeStamp = FieldValue.serverTimestamp();
+        DocumentReference adDocRef = await myActiveAdsCollection.add({
+          'adTitle': _adTitleController.text.trim(),
+          'adDescription': _adDescriptionController.text.trim(),
+          'price': double.parse(_priceController.text.trim()),
+          'brand': _brandController.text.trim(),
+          'images': url,
+          'createdAt': timeStamp,
+          'postedBy': handler.newUser.user?.displayName ??
+              '${handler.newUser.firstName} ${handler.newUser.lastName}',
+          'categoryName': widget.categoryName,
+          'subCategoryName': widget.subCategoryName,
+          'userId': handler.newUser.user!.uid
+        });
+        CollectionReference allAdsCollection =
+            fbCloudFireStore.collection('AllAds');
+        QuerySnapshot existingPost = await allAdsCollection
+            .where('adReference', isEqualTo: adDocRef)
+            .get();
+        if (existingPost.docs.isEmpty) {
+          allAdsCollection.add({
+            'adReference':
+                adDocRef, // Store reference to the ad document in MyActiveAds
+            'createdAt': timeStamp
+          });
+        }
+        CollectionReference categoryCollection =
+            fbCloudFireStore.collection('Category');
+        DocumentReference categoryDocRef =
+            categoryCollection.doc(widget.categoryName);
+        DocumentReference subcategoryDocRef = categoryDocRef
+            .collection('Subcategories')
+            .doc(widget.subCategoryName);
+        QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
             .collection('Ads')
-            .add({'adReference': adDocRef, 'createdAt': timeStamp});
-      } else {
-        print("This ad reference already exists in the subcategory");
+            .where('adReference', isEqualTo: adDocRef)
+            .get();
+
+        if (existingSubcategoryAd.docs.isEmpty) {
+          // If the ad reference does not exist in the subcategory, add it
+          subcategoryDocRef
+              .collection('Ads')
+              .add({'adReference': adDocRef, 'createdAt': timeStamp});
+        } else {
+          print("This ad reference already exists in the subcategory");
+        }
       }
-    }
-    if (!context.mounted) {
-      return;
-    }
-    //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
-    resetFields();
-    Navigator.of(popContext).pop();
-    if (context.mounted) {
-      Navigator.of(context)
-          .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
-    }
+    }).then((_) {
+      if (!context.mounted) {
+        return;
+      }
+      //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
+      resetFields();
+      Navigator.of(popContext).pop();
+      if (context.mounted) {
+        Navigator.of(context)
+            .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
+      }
+    });
   }
 
   bool checkAtleastOneImage() {
@@ -321,12 +330,26 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Ad Title',
-                style: GoogleFonts.roboto(
+              RichText(
+                text: TextSpan(
+                  text: 'Ad Title ',
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                     color: error == ''
                         ? CupertinoColors.black
-                        : CupertinoColors.systemRed),
+                        : CupertinoColors.systemRed,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '*',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.systemRed,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Expanded(
                 child: CupertinoTextField(
@@ -361,12 +384,26 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Set Price',
-                style: GoogleFonts.roboto(
+              RichText(
+                text: TextSpan(
+                  text: 'Set Price ',
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                     color: error == ''
                         ? CupertinoColors.black
-                        : CupertinoColors.systemRed),
+                        : CupertinoColors.systemRed,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '*',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.systemRed,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Expanded(
                 child: CupertinoTextField(
@@ -412,12 +449,26 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Additional Info (Include Condition, features)',
-                style: GoogleFonts.roboto(
+              RichText(
+                text: TextSpan(
+                  text: 'Additional Info (Include Condition, features) ',
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                     color: error == ''
                         ? CupertinoColors.black
-                        : CupertinoColors.systemRed),
+                        : CupertinoColors.systemRed,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '*',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.systemRed,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Expanded(
                 child: CupertinoTextField(
@@ -451,7 +502,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
       child: CupertinoButton(
         color: CupertinoColors.activeBlue,
         child: Text(
-          'Post Your Ad',
+          widget.isEditAd ? 'Post Your Edited Ad' : 'Post Your Ad',
           style: GoogleFonts.roboto(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         onPressed: () {
@@ -470,12 +521,25 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Brand',
-                style: GoogleFonts.roboto(
-                  color: error == ''
-                      ? CupertinoColors.black
-                      : CupertinoColors.systemRed,
+              RichText(
+                text: TextSpan(
+                  text: 'Brand ',
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: error == ''
+                        ? CupertinoColors.black
+                        : CupertinoColors.systemRed,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '*',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.systemRed,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               Expanded(
@@ -490,7 +554,6 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                       ),
                     );
                     if (selectedBrand == null) {
-                      print('reaching here');
                       FocusScope.of(context).unfocus();
                       return;
                     }
@@ -499,7 +562,9 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                   },
                   suffix: const Padding(
                     padding: EdgeInsets.only(right: 8),
-                    child: Icon(CupertinoIcons.chevron_down),
+                    child: Icon(
+                      CupertinoIcons.chevron_down,
+                    ),
                   ),
                   focusNode: _brandFocus,
                   controller: _brandController,
@@ -622,7 +687,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 const SizedBox(
                   height: 20,
                 ),
-                container(),
+                imageContainer(),
                 const SizedBox(
                   height: 50,
                 ),
@@ -669,7 +734,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     );
   }
 
-  Widget tabletSubCategory(BuildContext context) {
+  Widget tabletSubCategory() {
     return SizedBox(
       width: double.infinity,
       height: double.infinity,
@@ -700,7 +765,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 const SizedBox(
                   height: 20,
                 ),
-                container(),
+                imageContainer(),
                 const SizedBox(
                   height: 50,
                 ),
@@ -795,7 +860,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
               const SizedBox(
                 height: 20,
               ),
-              container(),
+              imageContainer(),
               const SizedBox(
                 height: 50,
               ),
@@ -807,178 +872,217 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     );
   }
 
-  Container container() {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        border: Border.all(color: CupertinoColors.systemGrey),
-        borderRadius: BorderRadius.circular(5),
-      ),
-      height: 300,
-      child: Column(
-        children: [
-          Consumer(
-            builder: (ctx, ref, child) {
-              final images = ref.watch(imageProvider);
-              return Expanded(
-                flex: 8,
-                child: images.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+  Column columnImagesWhilePostingAd() {
+    return Column(
+      children: [
+        Consumer(
+          builder: (ctx, ref, child) {
+            final images = ref.watch(imageProvider);
+            return Expanded(
+              flex: 8,
+              child: images.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/upload.jpg',
+                            height: 100,
+                            width: 100,
+                          ),
+                          Text(
+                            'Press + Button to add images',
+                            style: GoogleFonts.roboto(
+                                fontSize: 18,
+                                color: CupertinoColors.systemGrey),
+                          )
+                        ],
+                      ),
+                    )
+                  : Consumer(
+                      builder: (ctx, ref, child) {
+                        final selectedIndex = ref.watch(imageSelectProvider);
+                        return Column(
                           children: [
-                            Image.asset(
-                              'assets/images/upload.jpg',
-                              height: 100,
-                              width: 100,
+                            Expanded(
+                              flex: 1,
+                              child: Row(
+                                children: [
+                                  const Spacer(),
+                                  IconButton(
+                                    padding: EdgeInsetsDirectional.zero,
+                                    onPressed: () {
+                                      dialog(ctx, images[selectedIndex]);
+                                    },
+                                    icon: const Icon(
+                                      CupertinoIcons.clear_circled_solid,
+                                      color: CupertinoColors.destructiveRed,
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
-                            Text(
-                              'Press + Button to add images',
-                              style: GoogleFonts.roboto(
-                                  fontSize: 18,
-                                  color: CupertinoColors.systemGrey),
-                            )
-                          ],
-                        ),
-                      )
-                    : Consumer(
-                        builder: (ctx, ref, child) {
-                          final selectedIndex = ref.watch(imageSelectProvider);
-                          return Stack(
-                            children: [
-                              Image.file(
+                            Expanded(
+                              flex: 9,
+                              child: Image.file(
                                 File(images[selectedIndex].path),
                                 fit: BoxFit.fill,
                               ),
-                              Positioned(
-                                top: 0,
-                                right: -10,
-                                child: IconButton(
-                                  onPressed: () {
-                                    dialog(ctx, images[selectedIndex]);
-                                  },
-                                  icon: const Icon(
-                                    CupertinoIcons.clear_circled_solid,
-                                    color: CupertinoColors.systemIndigo,
+                            )
+                          ],
+                        );
+                      },
+                    ),
+            );
+          },
+        ),
+        Container(
+          height: 0.5,
+          width: double.infinity,
+          color: CupertinoColors.black,
+        ),
+        Expanded(
+          flex: 2,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IconButton(
+                padding: const EdgeInsets.only(top: 5),
+                onPressed: () {
+                  unfocusFields();
+                  _uploadImages(context);
+                },
+                icon: const Icon(
+                  CupertinoIcons.add_circled_solid,
+                  size: 50,
+                ),
+              ),
+              Expanded(
+                child: Consumer(
+                  builder: (ctx, ref, child) {
+                    final images = ref.watch(imageProvider);
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: images.length,
+                            itemBuilder: (ctx, index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  ref
+                                      .read(imageSelectProvider.notifier)
+                                      .changeIndex(index);
+                                },
+                                child: Container(
+                                  height: 20,
+                                  width: 50,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Image.file(
+                                      height: 30,
+                                      width: 40,
+                                      File(images[index].path),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-              );
-            },
-          ),
-          Container(
-            height: 0.5,
-            width: double.infinity,
-            color: CupertinoColors.black,
-          ),
-          Expanded(
-            flex: 2,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IconButton(
-                  padding: const EdgeInsets.only(top: 5),
-                  onPressed: () {
-                    unfocusFields();
-                    _uploadImages(context);
-                  },
-                  icon: const Icon(
-                    CupertinoIcons.add_circled_solid,
-                    size: 50,
-                  ),
-                ),
-                Expanded(
-                  child: Consumer(
-                    builder: (ctx, ref, child) {
-                      final images = ref.watch(imageProvider);
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: images.length,
-                              itemBuilder: (ctx, index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    ref
-                                        .read(imageSelectProvider.notifier)
-                                        .changeIndex(index);
-                                  },
-                                  child: Container(
-                                    height: 20,
-                                    width: 50,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: CupertinoColors.systemGrey,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Image.file(
-                                        height: 30,
-                                        width: 40,
-                                        File(images[index].path),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
+                              );
+                            },
                           ),
-                        ],
-                      );
-                    },
-                  ),
-                )
-              ],
-            ),
-          )
-        ],
-      ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              )
+            ],
+          ),
+        )
+      ],
     );
+  }
+
+  Column columnImagesWhileEditingAd() {
+    return Column(
+      children: [
+        Expanded(
+          flex: 8,
+          child: Container(
+            color: CupertinoColors.activeBlue,
+          ),
+        ),
+        Expanded(
+          flex: 2,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: CupertinoColors.activeGreen,
+              border: Border(
+                top: BorderSide(width: 0.5),
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  Container imageContainer() {
+    return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border.all(color: CupertinoColors.systemGrey),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        height: 300,
+        child: widget.isEditAd
+            ? columnImagesWhileEditingAd()
+            : columnImagesWhilePostingAd());
   }
 
   void dialog(BuildContext context, XFile image) {
     showCupertinoDialog(
-        context: context,
-        builder: (ctx) {
-          return CupertinoAlertDialog(
-            title: Text(
-              'Alert',
-              style: GoogleFonts.roboto(),
-            ),
-            content: Text(
-              'Are you sure want to delete this image?',
-              style: GoogleFonts.roboto(),
-            ),
-            actions: [
-              CupertinoDialogAction(
-                child: Text(
-                  'Yes',
-                  style: GoogleFonts.roboto(),
-                ),
-                onPressed: () {
-                  ref.read(imageProvider.notifier).removeImage(image);
-                  ref.read(imageSelectProvider.notifier).changeIndex(0);
-                  Navigator.of(ctx).pop();
-                },
+      context: context,
+      builder: (ctx) {
+        return CupertinoAlertDialog(
+          title: Text(
+            'Alert',
+            style: GoogleFonts.roboto(),
+          ),
+          content: Text(
+            'Are you sure want to delete this image?',
+            style: GoogleFonts.roboto(),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              child: Text(
+                'Yes',
+                style:
+                    GoogleFonts.roboto(color: CupertinoColors.destructiveRed),
               ),
-              CupertinoDialogAction(
-                child: Text(
-                  'No',
-                  style: GoogleFonts.roboto(),
-                ),
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                },
+              onPressed: () {
+                ref.read(imageProvider.notifier).removeImage(image);
+                ref.read(imageSelectProvider.notifier).changeIndex(0);
+                Navigator.of(ctx).pop();
+              },
+            ),
+            CupertinoDialogAction(
+              child: Text(
+                'No',
+                style: GoogleFonts.roboto(),
               ),
-            ],
-          );
-        });
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _cameraPressed(BuildContext ctx) async {
@@ -1052,7 +1156,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           },
           child: mobileSubCategory());
     } else if (subCategoryName == Constants.tablet) {
-      return tabletSubCategory(context);
+      return tabletSubCategory();
     } else if (subCategoryName == Constants.mobileChargerLaptopCharger) {
       return chargerSubCategory();
     } else {
@@ -1078,7 +1182,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 const SizedBox(
                   height: 20,
                 ),
-                container(),
+                imageContainer(),
                 const SizedBox(
                   height: 50,
                 ),
@@ -1125,10 +1229,26 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           Consumer(
             builder: (ctx, ref, child) {
               final error = ref.watch(ipadError);
-              return Text(
-                'Type',
-                style: GoogleFonts.roboto(
-                    color: error != '' ? CupertinoColors.systemRed : null),
+              return RichText(
+                text: TextSpan(
+                  text: 'Type ',
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: error == ''
+                        ? CupertinoColors.black
+                        : CupertinoColors.systemRed,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '*',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.systemRed,
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -1152,7 +1272,10 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                         builder: (context, ref, child) {
                           final selectedIndex = ref.watch(selectedIpadProvider);
                           return getContainer(
-                              _tabletBrands[index], selectedIndex, index);
+                            _tabletBrands[index],
+                            selectedIndex,
+                            index,
+                          );
                         },
                       ),
                     ),
@@ -1185,11 +1308,22 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isEditAd) {
+      if (widget.ad != null) {
+        if (widget.subCategoryName == Constants.mobilePhone) {
+          _brandController.text = widget.ad!.brand!;
+        }
+        _adTitleController.text = widget.ad!.adTitle;
+        _adDescriptionController.text = widget.ad!.adDescription;
+        _priceController.text = widget.ad!.price.toInt().toString();
+        //ref.read(imageProvider.notifier).addImage();
+      }
+    }
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         padding: EdgeInsetsDirectional.zero,
         middle: Text(
-          'Include some details',
+          widget.isEditAd ? 'Edit Product' : 'Include some details',
           style: GoogleFonts.roboto(),
         ),
         leading: CupertinoButton(
@@ -1204,7 +1338,10 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
         onTap: () {
           unfocusFields();
         },
-        child: changeUIAccordingly(widget.subCategoryName, context),
+        child: changeUIAccordingly(
+          widget.subCategoryName,
+          context,
+        ),
       ),
     );
   }

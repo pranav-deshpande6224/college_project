@@ -118,9 +118,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           color: CupertinoColors.activeBlue,
                         ),
                       ),
-                      const SizedBox(
-                        height: 10,
-                      ),
                       Text(
                         widget.item.adDescription,
                         style: GoogleFonts.roboto(fontSize: 22),
@@ -147,15 +144,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               fontSize: 22,
                             ),
                           ),
-                          
                         ],
                       ),
                       const SizedBox(
                         height: 10,
                       ),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          
+                          Text(
+                            'Posted At',
+                            style: GoogleFonts.roboto(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: CupertinoColors.activeBlue,
+                            ),
+                          ),
+                          Text(
+                            widget.item.createdAt,
+                            style: GoogleFonts.roboto(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 20,
+                            ),
+                          )
                         ],
                       )
                     ],

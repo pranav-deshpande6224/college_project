@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
-import 'package:college_project/UIPart/Providers/show_sold_ads.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/sell/product_get_info.dart';
+import 'package:college_project/UIPart/Providers/pagination_active_ads/show_sold_ads.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,11 +11,11 @@ class AdCard extends ConsumerWidget {
   final int cardIndex;
   final Item ad;
   final bool isSold;
-  final void Function(Item item)? adSold;
+  //final void Function(Item item)? adSold;
   const AdCard(
       {required this.cardIndex,
       required this.ad,
-      required this.adSold,
+     // required this.adSold,
       required this.isSold,
       super.key});
 
@@ -39,7 +41,7 @@ class AdCard extends ConsumerWidget {
             .doc(ad.id)
             .delete();
       }).then((value) {
-        ref.read(showSoldAdsProvider.notifier).deleteSoldAd(ad);
+        //ref.read(showSoldAdsProvider.notifier).deleteSoldAd(ad);
         if (anotherContext.mounted) {
           Navigator.of(anotherContext).pop();
         }
@@ -49,6 +51,7 @@ class AdCard extends ConsumerWidget {
       print(e.toString());
     }
   }
+
   Widget getWidget(BuildContext context, WidgetRef ref) {
     if (isSold) {
       return Expanded(
@@ -121,8 +124,8 @@ class AdCard extends ConsumerWidget {
                                     child: Text(
                                       'No',
                                       style: GoogleFonts.roboto(
-                                          color:
-                                              CupertinoColors.destructiveRed),
+                                        color: CupertinoColors.destructiveRed,
+                                      ),
                                     ),
                                     onPressed: () {
                                       Navigator.of(ctx).pop();
@@ -133,8 +136,7 @@ class AdCard extends ConsumerWidget {
                                         style: GoogleFonts.roboto()),
                                     onPressed: () {
                                       Navigator.of(ctx).pop();
-                                      adSold!(ad);
-                                      
+                                      //adSold!(ad);
                                     },
                                   ),
                                 ]);
@@ -177,7 +179,16 @@ class AdCard extends ConsumerWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      print('Edit Product');
+                      Navigator.of(context, rootNavigator: true).push(
+                        CupertinoPageRoute(
+                          builder: (ctx) => ProductGetInfo(
+                            categoryName: ad.categoryName,
+                            subCategoryName: ad.subCategoryName,
+                            ad: ad,
+                            isEditAd: true,
+                          ),
+                        ),
+                      );
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -239,24 +250,18 @@ class AdCard extends ConsumerWidget {
                       Expanded(
                         flex: 3,
                         child: ClipRRect(
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Image.asset(
-                                    'assets/images/placeholder.jpg'),
-                              ),
-                              Positioned(
-                                top: 5,
-                                left: 5,
-                                right: 5,
-                                child: ClipRRect(
-                                  child: Image.network(
-                                    ad.images[0],
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              )
-                            ],
+                          child: CachedNetworkImage(
+                            imageUrl: ad.images[0],
+                            placeholder: (context, url) {
+                              return Image.asset(
+                                  'assets/images/placeholder.jpg');
+                            },
+                            errorWidget: (context, url, error) {
+                              return const Center(
+                                child:
+                                    Icon(CupertinoIcons.exclamationmark_circle),
+                              );
+                            },
                           ),
                         ),
                       ),

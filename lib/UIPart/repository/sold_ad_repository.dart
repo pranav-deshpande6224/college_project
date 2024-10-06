@@ -3,8 +3,8 @@ import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.d
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:intl/intl.dart';
 
-class ActiveAdRepository {
-  Future<List<Item>> fetchActiveAds(DocumentSnapshot? lastDocument) async {
+class SoldAdRepository {
+  Future<List<Item>> fetchSoldAds(DocumentSnapshot? lastDocument) async {
     AuthHandler handler = AuthHandler.authHandlerInstance;
     final fireStore = handler.fireStore;
     if (handler.newUser.user != null) {
@@ -12,10 +12,9 @@ class ActiveAdRepository {
         Query<Map<String, dynamic>> query = fireStore
             .collection('users')
             .doc(handler.newUser.user!.uid)
-            .collection('MyActiveAds')
+            .collection('MySoldAds')
             .orderBy('createdAt', descending: true)
             .limit(5);
-
         if (lastDocument != null) {
           query = query.startAfterDocument(lastDocument);
         }

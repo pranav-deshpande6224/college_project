@@ -17,8 +17,10 @@ class AdUploaded extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(CupertinoIcons.check_mark_circled_solid,
-                        size: 100),
+                    const Icon(
+                      CupertinoIcons.check_mark_circled_solid,
+                      size: 100,
+                    ),
                     const SizedBox(
                       height: 20,
                     ),

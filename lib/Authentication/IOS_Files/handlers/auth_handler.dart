@@ -58,6 +58,7 @@ class AuthHandler {
       newUser.user = userCredential.user;
       newUser.user!.updateDisplayName('$fName $lName');
       await storeSignUpData(email, fName, lName);
+      if (!context.mounted) return;
       Navigator.pop(signUpContext);
       Navigator.push(
         context,
@@ -114,7 +115,7 @@ class AuthHandler {
         );
       }
     } on FirebaseAuthException catch (e) {
-     if (e.code == 'invalid-credential') {
+      if (e.code == 'invalid-credential') {
         if (!context.mounted) return;
         Navigator.of(loginContext).pop();
         showErrorDialog(context, 'Alert',
@@ -222,7 +223,6 @@ class AuthHandler {
     final isEmailExists = await checkUserExistOrNot(email);
     if (!isEmailExists) {
       if (!context.mounted) return;
-      print('Reaching here in forgetpassword');
       Navigator.of(foregetPasswordContext).pop();
       showErrorDialog(context, 'Alert',
           'No user found for that email, if you are new user, please sign up.');

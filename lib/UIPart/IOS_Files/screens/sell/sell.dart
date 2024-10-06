@@ -107,6 +107,7 @@ class _SellState extends State<Sell> {
                       builder: (ctx) => DetailScreen(
                         categoryName: category.categoryTitle,
                         subCategoryList: category.subCategory,
+                        isPostingData: true,
                       ),
                     ),
                   );

@@ -1,13 +1,17 @@
+import 'package:college_project/UIPart/IOS_Files/screens/home/fetch_category_ads.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/sell/product_get_info.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DetailScreen extends StatelessWidget {
   final String categoryName;
   final List<String> subCategoryList;
+  final bool isPostingData;
   const DetailScreen(
-      {required this.categoryName, required this.subCategoryList, super.key});
+      {required this.isPostingData,
+      required this.categoryName,
+      required this.subCategoryList,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +25,27 @@ class DetailScreen extends StatelessWidget {
         itemBuilder: (ctx, index) {
           return GestureDetector(
             onTap: () {
-              Navigator.of(context).push(
-                CupertinoPageRoute(
-                  builder: (ctx) => ProductGetInfo(
-                    categoryName: categoryName,
-                    subCategoryName: subCategoryList[index],
+              if (isPostingData) {
+                Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (ctx) => ProductGetInfo(
+                      categoryName: categoryName,
+                      subCategoryName: subCategoryList[index],
+                      ad: null,
+                      isEditAd: false,
+                    ),
                   ),
-                ),
-              );
+                );
+              } else {
+                Navigator.of(context).push(
+                  CupertinoPageRoute(
+                    builder: (ctx) => FetchCategoryAds(
+                      categoryName: categoryName,
+                      subCategoryName: subCategoryList[index],
+                    ),
+                  ),
+                );
+              }
             },
             child: Column(
               children: [
@@ -42,8 +59,14 @@ class DetailScreen extends StatelessWidget {
                     style: GoogleFonts.roboto(),
                   ),
                 ),
-                const Divider(
-                  thickness: 0.5,
+                Container(
+                  width: double.infinity,
+                  height: 0.5,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: CupertinoColors.systemGrey3,
+                    ),
+                  ),
                 )
               ],
             ),

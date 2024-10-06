@@ -1,24 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class HomeRepository {
-  Future<List<Item>> fetchHomeAds(DocumentSnapshot? lastDocument) async {
+class CategoryRepository {
+  Future<List<Item>> getThatCategoryData(DocumentSnapshot? lastDocument,
+      String categoryName, String subCategoryName) async {
     AuthHandler handler = AuthHandler.authHandlerInstance;
     final fireStore = handler.fireStore;
     if (handler.newUser.user != null) {
+      
       try {
         Query<Map<String, dynamic>> query = fireStore
-            .collection('AllAds')
+            .collection('Category')
+            .doc(categoryName)
+            .collection('Subcategories')
+            .doc(subCategoryName)
+            .collection('Ads')
             .orderBy('createdAt', descending: true)
-            .limit(8);
+            .limit(5);
         if (lastDocument != null) {
-          query = query.startAfterDocument(lastDocument);
+            query = query.startAfterDocument(lastDocument);
         }
-        final QuerySnapshot<Map<String, dynamic>> snapshot = await query.get();
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         List<Item> items = [];
-        for (final doc in snapshot.docs) {
+        for (final doc in querySnapshot.docs) {
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
           DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
           Timestamp timeStamp = doc.data()['createdAt'];
@@ -33,8 +40,12 @@ class HomeRepository {
         throw e.toString();
       }
     } else {
-      // No user exists Need to check this case also
+      // TODO NoUSer Navigate to Login Screen
       return [];
     }
   }
 }
+
+final categoryRepositoryProvider = Provider<CategoryRepository>((_) {
+  return CategoryRepository();
+});

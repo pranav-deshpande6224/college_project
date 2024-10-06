@@ -10,6 +10,28 @@ import '../../../Providers/password_provider.dart';
 import 'forget_password.dart';
 import 'sign_up.dart';
 
+// RichText(
+//                 text: TextSpan(
+//                   text: 'Brand ',
+//                   style: GoogleFonts.roboto(
+//                     fontWeight: FontWeight.bold,
+//                     fontSize: 16,
+//                     color: error == ''
+//                         ? CupertinoColors.black
+//                         : CupertinoColors.systemRed,
+//                   ),
+//                   children: [
+//                     TextSpan(
+//                       text: '*',
+//                       style: GoogleFonts.roboto(
+//                         fontWeight: FontWeight.bold,
+//                         color: CupertinoColors.systemRed,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+
 class LoginIos extends ConsumerStatefulWidget {
   const LoginIos({super.key});
 
@@ -85,7 +107,6 @@ class _LoginIosState extends ConsumerState<LoginIos> {
     }
   }
 
-
   void unFocusTextFields() {
     _emailFocusNode.unfocus();
     _passwordFocusNode.unfocus();
@@ -133,45 +154,66 @@ class _LoginIosState extends ConsumerState<LoginIos> {
                 const SizedBox(
                   height: 30,
                 ),
-                SizedBox(
-                  height: 75,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Email',
-                        style: GoogleFonts.lato(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Expanded(
-                        child: CupertinoTextField(
-                          focusNode: _emailFocusNode,
-                          keyboardType: TextInputType.emailAddress,
-                          prefix: const Padding(
-                            padding: EdgeInsets.only(left: 10),
-                            child: Icon(
-                              CupertinoIcons.mail_solid,
-                              color: CupertinoColors.black,
+                Consumer(
+                  builder: (context, ref, child) {
+                    final emailError = ref.watch(emailErrorProvider);
+                    return SizedBox(
+                      height: 75,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              text: 'Email',
+                              style: GoogleFonts.lato(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: emailError.isNotEmpty
+                                    ? CupertinoColors.systemRed
+                                    : CupertinoColors.black,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '*',
+                                  style: GoogleFonts.roboto(
+                                    fontWeight: FontWeight.bold,
+                                    color: CupertinoColors.systemRed,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          controller: _emailController,
-                          cursorColor: CupertinoColors.black,
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.white,
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(
-                              color: CupertinoColors.systemGrey,
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Expanded(
+                            child: CupertinoTextField(
+                              focusNode: _emailFocusNode,
+                              keyboardType: TextInputType.emailAddress,
+                              prefix: const Padding(
+                                padding: EdgeInsets.only(left: 10),
+                                child: Icon(
+                                  CupertinoIcons.mail_solid,
+                                  color: CupertinoColors.black,
+                                ),
+                              ),
+                              controller: _emailController,
+                              cursorColor: CupertinoColors.black,
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(
+                                  color: emailError.isNotEmpty
+                                      ? CupertinoColors.systemRed
+                                      : CupertinoColors.systemGrey,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 Consumer(
                   builder: (context, ref, child) {
@@ -193,67 +235,88 @@ class _LoginIosState extends ConsumerState<LoginIos> {
                 const SizedBox(
                   height: 20,
                 ),
-                SizedBox(
-                  height: 75,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Password',
-                        style: GoogleFonts.lato(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Expanded(
-                        child: Consumer(
-                          builder: (context, ref, child) {
-                            final passwordProvider =
-                                ref.watch(loginpasswordProviderNotifier);
-                            return CupertinoTextField(
-                              focusNode: _passwordFocusNode,
-                              keyboardType: TextInputType.none,
-                              prefix: const Padding(
-                                padding: EdgeInsets.only(left: 10),
-                                child: Icon(
-                                  CupertinoIcons.padlock_solid,
-                                  color: CupertinoColors.black,
-                                ),
+                Consumer(
+                  builder: (context, ref, child) {
+                    final passwordError = ref.watch(passwordErrorProvider);
+                    return SizedBox(
+                      height: 75,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              text: 'Password',
+                              style: GoogleFonts.lato(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: passwordError.isNotEmpty
+                                    ? CupertinoColors.systemRed
+                                    : CupertinoColors.black,
                               ),
-                              controller: _passwordController,
-                              obscureText: !passwordProvider,
-                              suffix: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () {
-                                  ref
-                                      .read(loginpasswordProviderNotifier
-                                          .notifier)
-                                      .togglePassword();
-                                },
-                                child: Icon(
-                                  passwordProvider
-                                      ? CupertinoIcons.eye_fill
-                                      : CupertinoIcons.eye_slash_fill,
-                                  color: CupertinoColors.darkBackgroundGray,
+                              children: [
+                                TextSpan(
+                                  text: '*',
+                                  style: GoogleFonts.roboto(
+                                    fontWeight: FontWeight.bold,
+                                    color: CupertinoColors.systemRed,
+                                  ),
                                 ),
-                              ),
-                              cursorColor: CupertinoColors.black,
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.white,
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Expanded(
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                final passwordProvider =
+                                    ref.watch(loginpasswordProviderNotifier);
+                                return CupertinoTextField(
+                                  focusNode: _passwordFocusNode,
+                                  keyboardType: TextInputType.none,
+                                  prefix: const Padding(
+                                    padding: EdgeInsets.only(left: 10),
+                                    child: Icon(
+                                      CupertinoIcons.padlock_solid,
+                                      color: CupertinoColors.black,
+                                    ),
+                                  ),
+                                  controller: _passwordController,
+                                  obscureText: !passwordProvider,
+                                  suffix: CupertinoButton(
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () {
+                                      ref
+                                          .read(loginpasswordProviderNotifier
+                                              .notifier)
+                                          .togglePassword();
+                                    },
+                                    child: Icon(
+                                      passwordProvider
+                                          ? CupertinoIcons.eye_fill
+                                          : CupertinoIcons.eye_slash_fill,
+                                      color: CupertinoColors.darkBackgroundGray,
+                                    ),
+                                  ),
+                                  cursorColor: CupertinoColors.black,
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.white,
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                      color: passwordError.isNotEmpty
+                                          ? CupertinoColors.systemRed
+                                          : CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 Consumer(
                   builder: (context, ref, child) {

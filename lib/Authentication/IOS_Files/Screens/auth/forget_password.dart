@@ -94,43 +94,64 @@ class _ForgetPasswordState extends ConsumerState<ForgetPassword> {
                 const SizedBox(
                   height: 20,
                 ),
-                SizedBox(
-                  height: 75,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Email',
-                        style: GoogleFonts.lato(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      Expanded(
-                        child: CupertinoTextField(
-                          prefix: const Padding(
-                            padding: EdgeInsets.only(left: 10),
-                            child: Icon(
-                              CupertinoIcons.mail_solid,
-                              color: CupertinoColors.black,
+                Consumer(
+                  builder: (context, ref, child) {
+                    final emailError = ref.watch(emailErrorProvider);
+                    return SizedBox(
+                      height: 75,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              text: 'Email',
+                              style: GoogleFonts.lato(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: emailError.isNotEmpty
+                                    ? CupertinoColors.systemRed
+                                    : CupertinoColors.black,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '*',
+                                  style: GoogleFonts.roboto(
+                                    fontWeight: FontWeight.bold,
+                                    color: CupertinoColors.systemRed,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          controller: _emailController,
-                          cursorColor: CupertinoColors.black,
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.white,
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(
-                              color: CupertinoColors.systemGrey,
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Expanded(
+                            child: CupertinoTextField(
+                              prefix: const Padding(
+                                padding: EdgeInsets.only(left: 10),
+                                child: Icon(
+                                  CupertinoIcons.mail_solid,
+                                  color: CupertinoColors.black,
+                                ),
+                              ),
+                              controller: _emailController,
+                              cursorColor: CupertinoColors.black,
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(
+                                  color: emailError.isNotEmpty
+                                      ? CupertinoColors.systemRed
+                                      : CupertinoColors.systemGrey,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
                 Consumer(
                   builder: (context, ref, child) {
