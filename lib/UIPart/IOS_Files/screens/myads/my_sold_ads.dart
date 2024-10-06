@@ -20,6 +20,7 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
     handler = AuthHandler.authHandlerInstance;
     super.initState();
   }
+
   @override
   void dispose() {
     soldAdScrollController.dispose();
@@ -74,7 +75,8 @@ class SoldItemsList extends ConsumerWidget {
               );
       },
       loading: () {
-        return SliverToBoxAdapter(
+        return SliverFillRemaining(
+          hasScrollBody: false,
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,

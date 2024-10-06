@@ -92,7 +92,8 @@ class ItemsList extends ConsumerWidget {
         );
       },
       loading: () {
-        return SliverToBoxAdapter(
+        return SliverFillRemaining(
+          hasScrollBody: false,
           child: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,

@@ -1,5 +1,3 @@
-import 'package:college_project/Authentication/IOS_Files/Models/new_user.dart';
-import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 
 class UserRepository {
   // Future<NewUser> getUserdata() async {
