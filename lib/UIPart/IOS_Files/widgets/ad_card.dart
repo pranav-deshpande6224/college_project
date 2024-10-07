@@ -15,7 +15,7 @@ class AdCard extends ConsumerWidget {
   const AdCard(
       {required this.cardIndex,
       required this.ad,
-     // required this.adSold,
+      // required this.adSold,
       required this.isSold,
       super.key});
 
@@ -41,7 +41,8 @@ class AdCard extends ConsumerWidget {
             .doc(ad.id)
             .delete();
       }).then((value) {
-        //ref.read(showSoldAdsProvider.notifier).deleteSoldAd(ad);
+        print('Reaching here');
+      //  ref.read(soldAdsProvider.notifier).deleteItem(ad);
         if (anotherContext.mounted) {
           Navigator.of(anotherContext).pop();
         }

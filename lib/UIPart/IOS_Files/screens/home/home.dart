@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});
 
@@ -12,7 +11,6 @@ class Home extends ConsumerStatefulWidget {
 }
 
 class _HomeState extends ConsumerState<Home> {
- 
   @override
   void initState() {
     super.initState();
@@ -29,10 +27,28 @@ class _HomeState extends ConsumerState<Home> {
           ),
         ),
       ),
-      child: const SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(10),
-          child: DisplayHomeAds(),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  left: 8,
+                  right: 8,
+                  top: 5,
+                  bottom: 5,
+                ),
+                child: CupertinoSearchTextField(
+                  placeholder: 'Find Mobiles, Monitor and more...',
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 9,
+              child: DisplayHomeAds(),
+            )
+          ],
         ),
       ),
     );
