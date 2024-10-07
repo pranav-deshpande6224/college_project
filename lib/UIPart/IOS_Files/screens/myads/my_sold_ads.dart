@@ -62,8 +62,24 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
         child: soldItemState.when(
           data: (soldAdState) {
             if (soldAdState.items.isEmpty) {
-              return Center(
-                child: Text('No Active Ads'),
+              return CustomScrollView(
+                controller: soldAdScrollController,
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () async {
+                      ref.read(showSoldAdsProvider.notifier).refreshItems();
+                    },
+                  ),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      child: Center(
+                        child: Text('No Sold Ads'),
+                      ),
+                    ),
+                  )
+                ],
               );
             }
             return CustomScrollView(

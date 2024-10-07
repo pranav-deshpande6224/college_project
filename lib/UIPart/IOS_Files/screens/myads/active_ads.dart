@@ -26,7 +26,7 @@ class _MyAdsState extends ConsumerState<MyAds> {
       double currentScroll = activeAdScrollController.position.pixels;
       double delta = MediaQuery.of(context).size.width * 0.20;
       if (maxScroll - currentScroll <= delta) {
-       ref.read(showActiveAdsProvider.notifier).fetchMoreItems();
+        ref.read(showActiveAdsProvider.notifier).fetchMoreItems();
       }
     });
   }
@@ -48,8 +48,24 @@ class _MyAdsState extends ConsumerState<MyAds> {
         child: itemState.when(
           data: (adState) {
             if (adState.items.isEmpty) {
-              return Center(
-                child: Text('No Active Ads'),
+              return CustomScrollView(
+                controller: activeAdScrollController,
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () async {
+                      ref.read(showActiveAdsProvider.notifier).refreshItems();
+                    },
+                  ),
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      child: Center(
+                        child: Text('No Active Ads'),
+                      ),
+                    ),
+                  )
+                ],
               );
             }
             return CustomScrollView(
@@ -57,40 +73,39 @@ class _MyAdsState extends ConsumerState<MyAds> {
               slivers: [
                 CupertinoSliverRefreshControl(
                   onRefresh: () async {
-                    await ref.read(showActiveAdsProvider.notifier).refreshItems();
+                    await ref
+                        .read(showActiveAdsProvider.notifier)
+                        .refreshItems();
                   },
                 ),
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (ctx, index) {
-                      final item = adState.items[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context, rootNavigator: true).push(
-                            CupertinoPageRoute(
-                              builder: (ctx) => ProductDetailScreen(
-                                item: item,
-                                yourAd: true,
-                              ),
+                  delegate: SliverChildBuilderDelegate((ctx, index) {
+                    final item = adState.items[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.of(context, rootNavigator: true).push(
+                          CupertinoPageRoute(
+                            builder: (ctx) => ProductDetailScreen(
+                              item: item,
+                              yourAd: true,
                             ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 10, right: 10, top: 10),
-                          child: AdCard(
-                            cardIndex: index,
-                            ad: item,
-                            // adSold: markAsSold,
-                            isSold: false,
                           ),
+                        );
+                      },
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.only(left: 10, right: 10, top: 10),
+                        child: AdCard(
+                          cardIndex: index,
+                          ad: item,
+                          // adSold: markAsSold,
+                          isSold: false,
                         ),
-                      );
-                    },
-                    childCount: adState.items.length
-                  ),
+                      ),
+                    );
+                  }, childCount: adState.items.length),
                 ),
-                if(adState.isLoadingMore)
+                if (adState.isLoadingMore)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.all(20),
@@ -101,8 +116,13 @@ class _MyAdsState extends ConsumerState<MyAds> {
                             CupertinoActivityIndicator(
                               radius: 15,
                             ),
-                            SizedBox(height: 10,),
-                            Text('Fetching Content...', style: TextStyle(),)
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text(
+                              'Fetching Content...',
+                              style: TextStyle(),
+                            )
                           ],
                         ),
                       ),

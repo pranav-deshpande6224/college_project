@@ -1,4 +1,5 @@
 import 'package:college_project/UIPart/IOS_Files/screens/home/display_home_ads.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/home/search_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,6 +41,10 @@ class _HomeState extends ConsumerState<Home> {
                   bottom: 5,
                 ),
                 child: CupertinoSearchTextField(
+                  onTap: () {
+                    Navigator.of(context, rootNavigator: true)
+                        .push(CupertinoPageRoute(builder: (ctx)=>SearchScreen()));
+                  },
                   placeholder: 'Find Mobiles, Monitor and more...',
                 ),
               ),
