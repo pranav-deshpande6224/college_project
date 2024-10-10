@@ -30,7 +30,10 @@ class AdCard extends ConsumerWidget {
           builder: (ctx) {
             anotherContext = ctx;
             return const Center(
-              child: CupertinoActivityIndicator(),
+              child: CupertinoActivityIndicator(
+                radius: 15,
+                color: CupertinoColors.activeBlue,
+              ),
             );
           });
       await fireStore.runTransaction((_) async {

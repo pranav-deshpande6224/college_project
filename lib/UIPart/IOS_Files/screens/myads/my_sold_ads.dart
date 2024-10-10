@@ -41,6 +41,12 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
   Widget build(BuildContext context) {
     final soldItemState = ref.watch(showSoldAdsProvider);
     return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          'MY SOLD ADS',
+          style: GoogleFonts.roboto(),
+        ),
+      ),
       child: SafeArea(
         child: soldItemState.when(
           data: (soldAdState) {
@@ -49,12 +55,6 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
                 physics: AlwaysScrollableScrollPhysics(),
                 controller: soldAdScrollController,
                 slivers: [
-                  CupertinoSliverNavigationBar(
-                    largeTitle: Text(
-                      'My Sold Ads',
-                      style: GoogleFonts.roboto(),
-                    ),
-                  ),
                   CupertinoSliverRefreshControl(
                     onRefresh: () async {
                       ref.read(showSoldAdsProvider.notifier).refreshItems();
@@ -72,12 +72,6 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
               physics: AlwaysScrollableScrollPhysics(),
               controller: soldAdScrollController,
               slivers: [
-                CupertinoSliverNavigationBar(
-                  largeTitle: Text(
-                    'My SoldAds',
-                    style: GoogleFonts.roboto(),
-                  ),
-                ),
                 CupertinoSliverRefreshControl(
                   onRefresh: () async {
                     ref.read(showSoldAdsProvider.notifier).refreshItems();

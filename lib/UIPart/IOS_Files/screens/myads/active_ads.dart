@@ -92,7 +92,6 @@ class _MyAdsState extends ConsumerState<MyAds> {
           await snapshot.reference.delete();
         });
         ref.read(showActiveAdsProvider.notifier).deleteItem(item);
-        
         ref.read(homeAdsprovider.notifier).deleteItem(item);
         //ref.read(showCatAdsProvider.notifier).deleteItem(item);
         Navigator.of(sellContext).pop();
