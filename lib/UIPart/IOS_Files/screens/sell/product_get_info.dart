@@ -182,7 +182,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                   : '',
           'images': url,
           'createdAt': timeStamp,
-          'postedBy': '${handler.newUser.firstName}',
+          'postedBy': '${handler.newUser.user!.displayName}',
           'categoryName': widget.categoryName,
           'subCategoryName': widget.subCategoryName,
           'userId': handler.newUser.user!.uid

@@ -44,7 +44,6 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         
         List<Item> items = [];
-        print(querySnapshot.docs.length);
         for (final doc in querySnapshot.docs) {
           
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];

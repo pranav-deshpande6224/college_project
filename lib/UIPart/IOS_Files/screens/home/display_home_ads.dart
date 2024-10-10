@@ -94,7 +94,6 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
   }
   void fetchInitialData()  {
     WidgetsBinding.instance.addPostFrameCallback((_) async{
-      await userRepository.getUserdata();
       ref.read(homeAdsprovider.notifier).fetchInitialItems();
     });
   }
