@@ -81,6 +81,7 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
                   delegate: SliverChildBuilderDelegate(
                     (ctx, index) {
                       final item = soldAdState.items[index];
+                      print('the item is $item');
                       return Padding(
                         padding:
                             const EdgeInsets.only(left: 10, right: 10, top: 10),

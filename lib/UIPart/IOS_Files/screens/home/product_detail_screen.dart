@@ -22,6 +22,67 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     super.initState();
   }
 
+  Widget getExtraDetails() {
+    if (widget.item.brand != '') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Brand',
+            style: GoogleFonts.lato(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: CupertinoColors.activeBlue,
+            ),
+          ),
+          Text(
+            widget.item.brand,
+            style: GoogleFonts.roboto(fontSize: 22),
+          ),
+        ],
+      );
+    }
+    if (widget.item.tabletType != '') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tablet',
+            style: GoogleFonts.lato(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: CupertinoColors.activeBlue,
+            ),
+          ),
+          Text(
+            widget.item.tabletType,
+            style: GoogleFonts.roboto(fontSize: 22),
+          ),
+        ],
+      );
+    }
+    if (widget.item.chargerType != '') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Charger',
+            style: GoogleFonts.lato(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              color: CupertinoColors.activeBlue,
+            ),
+          ),
+          Text(
+            widget.item.chargerType,
+            style: GoogleFonts.roboto(fontSize: 22),
+          ),
+        ],
+      );
+    }
+    return const SizedBox();
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -125,6 +186,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       const SizedBox(
                         height: 10,
                       ),
+                      getExtraDetails(),
+                      const SizedBox(
+                        height: 10,
+                      ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -168,7 +233,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           )
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),

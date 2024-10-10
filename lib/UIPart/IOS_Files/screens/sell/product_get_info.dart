@@ -126,7 +126,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     }
   }
 
-  void saveMyAdToDB() async {
+  void saveMyAdToDB(String categoryForPostingData) async {
     List<String> url = [];
     final fbStorage = handler.storage;
     final fbCloudFireStore = handler.fireStore;
@@ -139,92 +139,122 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
       return;
     }
     late BuildContext popContext;
-    fbCloudFireStore.runTransaction((_) async {
-      showCupertinoDialog(
-          context: context,
-          builder: (ctx) {
-            popContext = ctx;
-            return const Center(
-              child: CupertinoActivityIndicator(
-                radius: 15,
-                color: CupertinoColors.activeBlue,
-              ),
-            );
-          });
-      //ref.read(submitAdPostSpinner.notifier).isLoading();
-      for (int i = 0; i < ref.read(imageProvider).length; i++) {
-        String uniqueName = '${handler.newUser.user!.uid}/$uuid/image_$i.jpg';
-        UploadTask task = fbStorage
-            .ref(uniqueName)
-            .putFile(File(ref.read(imageProvider)[i].path));
-        await task.whenComplete(() => null);
-        String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
-        url.add(downloadURL);
-      }
-      if (widget.subCategoryName == Constants.mobilePhone) {
-        CollectionReference myActiveAdsCollection = fbCloudFireStore
-            .collection('users')
-            .doc(handler.newUser.user!.uid)
-            .collection('MyActiveAds');
-        final timeStamp = FieldValue.serverTimestamp();
-        DocumentReference adDocRef = await myActiveAdsCollection.add({
-          'adTitle': _adTitleController.text.trim(),
-          'adDescription': _adDescriptionController.text.trim(),
-          'price': double.parse(_priceController.text.trim()),
-          'brand': _brandController.text.trim(),
-          'images': url,
-          'createdAt': timeStamp,
-          'postedBy': handler.newUser.user?.displayName ??
-              '${handler.newUser.firstName} ${handler.newUser.lastName}',
-          'categoryName': widget.categoryName,
-          'subCategoryName': widget.subCategoryName,
-          'userId': handler.newUser.user!.uid
-        });
-        CollectionReference allAdsCollection =
-            fbCloudFireStore.collection('AllAds');
-        QuerySnapshot existingPost = await allAdsCollection
-            .where('adReference', isEqualTo: adDocRef)
-            .get();
-        if (existingPost.docs.isEmpty) {
-          allAdsCollection.add({
-            'adReference':
-                adDocRef, // Store reference to the ad document in MyActiveAds
-            'createdAt': timeStamp
-          });
+    try {
+      fbCloudFireStore.runTransaction((_) async {
+        showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              popContext = ctx;
+              return const Center(
+                child: CupertinoActivityIndicator(
+                  radius: 15,
+                  color: CupertinoColors.activeBlue,
+                ),
+              );
+            });
+        for (int i = 0; i < ref.read(imageProvider).length; i++) {
+          String uniqueName = '${handler.newUser.user!.uid}/$uuid/image_$i.jpg';
+          UploadTask task = fbStorage
+              .ref(uniqueName)
+              .putFile(File(ref.read(imageProvider)[i].path));
+          await task.whenComplete(() => null);
+          String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
+          url.add(downloadURL);
         }
-        CollectionReference categoryCollection =
-            fbCloudFireStore.collection('Category');
-        DocumentReference categoryDocRef =
-            categoryCollection.doc(widget.categoryName);
-        DocumentReference subcategoryDocRef = categoryDocRef
-            .collection('Subcategories')
-            .doc(widget.subCategoryName);
-        QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
-            .collection('Ads')
-            .where('adReference', isEqualTo: adDocRef)
-            .get();
-
-        if (existingSubcategoryAd.docs.isEmpty) {
-          // If the ad reference does not exist in the subcategory, add it
-          subcategoryDocRef
+          CollectionReference myActiveAdsCollection = fbCloudFireStore
+              .collection('users')
+              .doc(handler.newUser.user!.uid)
+              .collection('MyActiveAds');
+          final timeStamp = FieldValue.serverTimestamp();
+          DocumentReference adDocRef = await myActiveAdsCollection.add({
+            'adTitle': _adTitleController.text.trim(),
+            'adDescription': _adDescriptionController.text.trim(),
+            'price': double.parse(_priceController.text.trim()),
+            'brand': categoryForPostingData == Constants.mobilePhone
+                ? _brandController.text.trim()
+                : '',
+            'tablet_type': categoryForPostingData == Constants.tablet
+                ? _tabletBrands[ref.read(selectedIpadProvider)]
+                : '',
+            'charger_type':
+                categoryForPostingData == Constants.mobileChargerLaptopCharger
+                    ? chargers[ref.read(selectChargerProvider)]
+                    : '',
+            'images': url,
+            'createdAt': timeStamp,
+            'postedBy': handler.newUser.user?.displayName ??
+                '${handler.newUser.firstName} ${handler.newUser.lastName}',
+            'categoryName': widget.categoryName,
+            'subCategoryName': widget.subCategoryName,
+            'userId': handler.newUser.user!.uid
+          });
+          CollectionReference allAdsCollection =
+              fbCloudFireStore.collection('AllAds');
+          QuerySnapshot existingPost = await allAdsCollection
+              .where('adReference', isEqualTo: adDocRef)
+              .get();
+          if (existingPost.docs.isEmpty) {
+            allAdsCollection.add({
+              'adReference':
+                  adDocRef, // Store reference to the ad document in MyActiveAds
+              'createdAt': timeStamp
+            });
+          }
+          CollectionReference categoryCollection =
+              fbCloudFireStore.collection('Category');
+          DocumentReference categoryDocRef =
+              categoryCollection.doc(widget.categoryName);
+          DocumentReference subcategoryDocRef = categoryDocRef
+              .collection('Subcategories')
+              .doc(widget.subCategoryName);
+          QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
               .collection('Ads')
-              .add({'adReference': adDocRef, 'createdAt': timeStamp});
-        } else {
-          print("This ad reference already exists in the subcategory");
+              .where('adReference', isEqualTo: adDocRef)
+              .get();
+
+          if (existingSubcategoryAd.docs.isEmpty) {
+            // If the ad reference does not exist in the subcategory, add it
+            subcategoryDocRef
+                .collection('Ads')
+                .add({'adReference': adDocRef, 'createdAt': timeStamp});
+          } else {
+            print("This ad reference already exists in the subcategory");
+          }
+      }).then((_) {
+        if (!context.mounted) {
+          return;
         }
-      }
-    }).then((_) {
+        //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
+        resetFields();
+        Navigator.of(popContext).pop();
+        if (context.mounted) {
+          Navigator.of(context)
+              .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
+        }
+      });
+    } catch (e) {
       if (!context.mounted) {
         return;
       }
-      //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
-      resetFields();
       Navigator.of(popContext).pop();
-      if (context.mounted) {
-        Navigator.of(context)
-            .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
-      }
-    });
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            return AlertDialog(
+              title: Text('Alert', style: GoogleFonts.roboto()),
+              content: Text(e.toString(),
+                  style: GoogleFonts.roboto()),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text('Okay', style: GoogleFonts.roboto()),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                )
+              ],
+            );
+          });
+    }
   }
 
   bool checkAtleastOneImage() {
@@ -269,22 +299,22 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           uploadImageDialog();
           return;
         }
-        saveMyAdToDB();
+        saveMyAdToDB(Constants.mobilePhone);
       }
     } else if (widget.subCategoryName == Constants.tablet) {
       ipadSelectionErrorText();
       adTitleErrorText();
       adDescriptionErrorText();
       priceErrorText();
-
       if (ref.read(selectedIpadProvider) != -1 &&
           ref.read(adTitleError).isEmpty &&
           ref.read(adDescriptionError).isEmpty &&
           ref.read(priceError).isEmpty) {
-        print(_tabletBrands[ref.read(selectedIpadProvider)]);
-        print(_adTitleController.text);
-        print(_adDescriptionController.text);
-        print(_priceController.text);
+        if (checkAtleastOneImage()) {
+          uploadImageDialog();
+          return;
+        }
+        saveMyAdToDB(Constants.tablet);
       }
     } else if (widget.subCategoryName == Constants.mobileChargerLaptopCharger) {
       chargerSelectionErrorText();
@@ -295,10 +325,11 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           ref.read(adTitleError).isEmpty &&
           ref.read(adDescriptionError).isEmpty &&
           ref.read(priceError).isEmpty) {
-        print(chargers[ref.read(selectedIpadProvider)]);
-        print(_adTitleController.text);
-        print(_adDescriptionController.text);
-        print(_priceController.text);
+        if (checkAtleastOneImage()) {
+          uploadImageDialog();
+          return;
+        }
+        saveMyAdToDB(Constants.mobileChargerLaptopCharger);
       }
     } else {
       adTitleErrorText();
@@ -307,9 +338,12 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
       if (ref.read(adTitleError).isEmpty &&
           ref.read(adDescriptionError).isEmpty &&
           ref.read(priceError).isEmpty) {
-        print(_adTitleController.text);
-        print(_adDescriptionController.text);
-        print(_priceController.text);
+        if (checkAtleastOneImage()) {
+          uploadImageDialog();
+          return;
+        }
+        // For every other category i'm taking an empty string as category
+        saveMyAdToDB('');
       }
     }
   }
@@ -788,10 +822,26 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           Consumer(
             builder: (ctx, ref, child) {
               final error = ref.watch(chargerError);
-              return Text(
-                'Charger Type',
-                style: GoogleFonts.roboto(
-                    color: error != '' ? CupertinoColors.systemRed : null),
+              return RichText(
+                text: TextSpan(
+                  text: 'Charger Type ',
+                  style: GoogleFonts.roboto(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: error == ''
+                        ? CupertinoColors.black
+                        : CupertinoColors.systemRed,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '*',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.systemRed,
+                      ),
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -1312,7 +1362,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     if (widget.isEditAd) {
       if (widget.ad != null) {
         if (widget.subCategoryName == Constants.mobilePhone) {
-          _brandController.text = widget.ad!.brand!;
+          _brandController.text = widget.ad!.brand;
         }
         _adTitleController.text = widget.ad!.adTitle;
         _adDescriptionController.text = widget.ad!.adDescription;

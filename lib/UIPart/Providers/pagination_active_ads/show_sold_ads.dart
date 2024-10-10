@@ -49,7 +49,6 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
           return Item.fromJson(doc.data(), doc.id, dateString, doc);
         }).toList();
-
         if (querySnapshot.docs.isNotEmpty) {
           _soldLastDocument = querySnapshot.docs.last;
         }
@@ -73,11 +72,13 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
     await fetchInitialItems();
   }
 
-void deleteItem(Item item){
-  state = AsyncValue.data(state.asData!.value.copyWith(items: state.asData!.value.items.where((element) {
-    return element.id != item.id;
-  }).toList()));
-}
+  void deleteItem(Item item) {
+    state = AsyncValue.data(state.asData!.value.copyWith(
+        items: state.asData!.value.items.where((element) {
+      return element.id != item.id;
+    }).toList()));
+  }
+
   Future<void> fetchMoreItems() async {
     if (_isLoadingSold ||
         !_hasMoreSold ||
@@ -124,6 +125,7 @@ void deleteItem(Item item){
 }
 
 final showSoldAdsProvider =
-    StateNotifierProvider.autoDispose<ShowSoldAds, AsyncValue<SoldAdState>>((ref) {
+    StateNotifierProvider.autoDispose<ShowSoldAds, AsyncValue<SoldAdState>>(
+        (ref) {
   return ShowSoldAds();
 });

@@ -44,7 +44,6 @@ class AdCard extends ConsumerWidget {
             .doc(ad.id)
             .delete();
       }).then((value) {
-        print('Reaching here');
         ref.read(showSoldAdsProvider.notifier).deleteItem(ad);
         if (anotherContext.mounted) {
           Navigator.of(anotherContext).pop();

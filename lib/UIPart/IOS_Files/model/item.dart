@@ -11,11 +11,15 @@ class Item {
   final String postedBy;
   final String categoryName;
   final String subCategoryName;
-  final String? brand;
+  final String brand;
+  final String chargerType;
+  final String tabletType;
   final DocumentSnapshot documentSnapshot;
   const Item({
     required this.documentSnapshot,
-   required this.brand,
+    required this.chargerType,
+    required this.tabletType,
+    required this.brand,
     required this.userid,
     required this.id,
     required this.adTitle,
@@ -36,8 +40,8 @@ class Item {
     return imageList;
   }
 
-  factory Item.fromJson(Map<String, dynamic> json, String productId, String createdAt,
-      DocumentSnapshot doc) {
+  factory Item.fromJson(Map<String, dynamic> json, String productId,
+      String createdAt, DocumentSnapshot doc) {
     return Item(
       id: productId,
       userid: json['userId'],
@@ -51,6 +55,8 @@ class Item {
       subCategoryName: json['subCategoryName'],
       brand: json['brand'],
       documentSnapshot: doc,
+      chargerType: json['charger_type'],
+      tabletType: json['tablet_type'],
     );
   }
 
@@ -64,7 +70,10 @@ class Item {
       'categoryName': categoryName,
       'subCategoryName': subCategoryName,
       'createdAt': FieldValue.serverTimestamp(),
-      'userId': userid
+      'userId': userid,
+      'brand': brand,
+      'charger_type': chargerType,
+      'tablet_type': tabletType,
     };
   }
 }
