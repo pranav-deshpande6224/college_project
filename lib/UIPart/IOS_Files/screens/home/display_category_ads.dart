@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/category_ads_pagination.dart';
@@ -49,7 +50,7 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
   @override
   Widget build(BuildContext context) {
     final catItemState = ref.watch(showCatAdsProvider);
-   
+
     return catItemState.when(data: (CategoryAdsState data) {
       return CustomScrollView(
         physics: AlwaysScrollableScrollPhysics(),
@@ -105,24 +106,32 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                                       Expanded(
                                         flex: 4,
                                         child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 8,
-                                            left: 15,
-                                            bottom: 8,
-                                          ),
-                                          child: Stack(
-                                            children: [
-                                              Image.asset(
-                                                'assets/images/placeholder.jpg',
-                                              ),
-                                              Positioned(
-                                                child: Image.network(
-                                                  catAd.images[0],
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
+                                              left: 15,
+                                              bottom: 8,
+                                            ),
+                                            child: CachedNetworkImage(
+                                              imageUrl: catAd.images[0],
+                                              fit: BoxFit.cover,
+                                              placeholder: (context, url) {
+                                                return const Center(
+                                                  child: Icon(
+                                                    CupertinoIcons.photo,
+                                                    size: 30,
+                                                  ),
+                                                );
+                                              },
+                                              errorWidget:
+                                                  (context, url, error) {
+                                                return const Center(
+                                                  child: Icon(
+                                                    CupertinoIcons.photo,
+                                                    size: 30,
+                                                  ),
+                                                );
+                                              },
+                                            )),
                                       ),
                                       Expanded(
                                         flex: 6,
