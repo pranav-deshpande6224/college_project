@@ -2,7 +2,6 @@ import 'package:college_project/Authentication/IOS_Files/Screens/auth/email_veri
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
 import 'package:college_project/Authentication/Providers/password_provider.dart';
-import 'package:college_project/Authentication/Providers/spinner.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -54,6 +53,7 @@ class _SignUpState extends ConsumerState<SignUp> {
   }
 
   void signupPressed() async {
+    late BuildContext signUpContext;
     if (_fnameController.text.trim().isEmpty) {
       ref
           .read(fnameErrorProvider.notifier)
@@ -118,18 +118,24 @@ class _SignUpState extends ConsumerState<SignUp> {
         passwordError.isEmpty &&
         confirmPasswordError.isEmpty) {
       unfocusTextFields();
-      ref.read(spinnerProvider.notifier).isLoading();
-      await handler.signUp(
-          _emailController.text, _passwordController.text, context, ref);
-      await handler.storeSignUpData(_emailController.text.trim(),
-          _fnameController.text.trim(), _lnameController.text.trim());
-      ref.read(spinnerProvider.notifier).isDoneLoading();
-      if (handler.user != null) {
-        // User Successsfully Signed Up
-        if (context.mounted) {
-          navigateToEmailVerification(context);
-        }
-      }
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            signUpContext = ctx;
+            handler.signUp(
+              _emailController.text.trim(),
+              _passwordController.text.trim(),
+              context,
+              signUpContext,
+              _fnameController.text.trim(),
+              _lnameController.text.trim(),
+            );
+            return const Center(
+              child: CupertinoActivityIndicator(
+                radius: 15,
+              ),
+            );
+          });
     }
   }
 
@@ -152,18 +158,31 @@ class _SignUpState extends ConsumerState<SignUp> {
     );
   }
 
-  SizedBox getTextField(String text, TextEditingController controller,
-      IconData data, TextInputType type, FocusNode focusNode) {
+  SizedBox getTextField(String textGiven, TextEditingController controller,
+      IconData data, TextInputType type, FocusNode focusNode, String error) {
     return SizedBox(
       height: 75,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            text,
-            style: GoogleFonts.lato(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+          RichText(
+            text: TextSpan(
+              text: textGiven,
+              style: GoogleFonts.lato(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: error.isNotEmpty
+                    ? CupertinoColors.systemRed
+                    : CupertinoColors.black,
+              ),
+              children: [
+                TextSpan(
+                  text: '*',
+                  style: GoogleFonts.roboto(
+                    color: CupertinoColors.systemRed,
+                  ),
+                )
+              ],
             ),
           ),
           const SizedBox(
@@ -186,7 +205,9 @@ class _SignUpState extends ConsumerState<SignUp> {
                 color: CupertinoColors.white,
                 borderRadius: BorderRadius.circular(5),
                 border: Border.all(
-                  color: CupertinoColors.systemGrey,
+                  color: error.isNotEmpty
+                      ? CupertinoColors.systemRed
+                      : CupertinoColors.systemGrey,
                 ),
               ),
             ),
@@ -244,12 +265,18 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 10,
                   ),
-                  getTextField(
-                      'First Name',
-                      _fnameController,
-                      CupertinoIcons.person_add_solid,
-                      TextInputType.name,
-                      fnameFocusNode),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final fnameError = ref.watch(fnameErrorProvider);
+                      return getTextField(
+                          'First Name',
+                          _fnameController,
+                          CupertinoIcons.person_add_solid,
+                          TextInputType.name,
+                          fnameFocusNode,
+                          fnameError);
+                    },
+                  ),
                   Consumer(
                     builder: (context, ref, child) {
                       final fnameError = ref.watch(fnameErrorProvider);
@@ -269,12 +296,18 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 10,
                   ),
-                  getTextField(
-                      'Last Name',
-                      _lnameController,
-                      CupertinoIcons.person_add_solid,
-                      TextInputType.name,
-                      lnameFocusNode),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final lastNameError = ref.watch(lnameErrorProvider);
+                      return getTextField(
+                          'Last Name',
+                          _lnameController,
+                          CupertinoIcons.person_add_solid,
+                          TextInputType.name,
+                          lnameFocusNode,
+                          lastNameError);
+                    },
+                  ),
                   Consumer(
                     builder: (context, ref, child) {
                       final lastNameError = ref.watch(lnameErrorProvider);
@@ -294,12 +327,18 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 10,
                   ),
-                  getTextField(
-                      'Email',
-                      _emailController,
-                      CupertinoIcons.mail_solid,
-                      TextInputType.emailAddress,
-                      emailFocusNode),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final emailError = ref.watch(emailErrorProvider);
+                      return getTextField(
+                          'Email',
+                          _emailController,
+                          CupertinoIcons.mail_solid,
+                          TextInputType.emailAddress,
+                          emailFocusNode,
+                          emailError);
+                    },
+                  ),
                   Consumer(
                     builder: (context, ref, child) {
                       final emailError = ref.watch(emailErrorProvider);
@@ -319,66 +358,88 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 10,
                   ),
-                  Consumer(builder: (ctx, ref, child) {
-                    final showPassword =
-                        ref.watch(signupPasswordProviderNotifier);
-                    return SizedBox(
-                      height: 75,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Password',
-                            style: GoogleFonts.lato(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 5,
-                          ),
-                          Expanded(
-                            child: CupertinoTextField(
-                              focusNode: passwordFocusNode,
-                              keyboardType: TextInputType.none,
-                              prefix: const Padding(
-                                padding: EdgeInsets.only(left: 10),
-                                child: Icon(
-                                  CupertinoIcons.lock_fill,
-                                  color: CupertinoColors.black,
+                  Consumer(
+                    builder: (ctx, ref, child) {
+                      final passError = ref.watch(passwordErrorProvider);
+                      return SizedBox(
+                        height: 75,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RichText(
+                              text: TextSpan(
+                                text: 'Password',
+                                style: GoogleFonts.lato(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: passError.isNotEmpty
+                                      ? CupertinoColors.systemRed
+                                      : CupertinoColors.black,
                                 ),
-                              ),
-                              obscureText: !showPassword,
-                              suffix: CupertinoButton(
-                                padding: EdgeInsets.zero,
-                                onPressed: () {
-                                  ref
-                                      .read(signupPasswordProviderNotifier
-                                          .notifier)
-                                      .togglePassword();
-                                },
-                                child: Icon(
-                                  showPassword
-                                      ? CupertinoIcons.eye_fill
-                                      : CupertinoIcons.eye_slash_fill,
-                                  color: CupertinoColors.black,
-                                ),
-                              ),
-                              controller: _passwordController,
-                              cursorColor: CupertinoColors.black,
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.white,
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(
-                                  color: CupertinoColors.systemGrey,
-                                ),
+                                children: [
+                                  TextSpan(
+                                    text: '*',
+                                    style: GoogleFonts.roboto(
+                                      color: CupertinoColors.systemRed,
+                                    ),
+                                  )
+                                ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final showPassword =
+                                    ref.watch(signupPasswordProviderNotifier);
+                                return Expanded(
+                                  child: CupertinoTextField(
+                                    focusNode: passwordFocusNode,
+                                    keyboardType: TextInputType.none,
+                                    prefix: const Padding(
+                                      padding: EdgeInsets.only(left: 10),
+                                      child: Icon(
+                                        CupertinoIcons.lock_fill,
+                                        color: CupertinoColors.black,
+                                      ),
+                                    ),
+                                    obscureText: !showPassword,
+                                    suffix: CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      onPressed: () {
+                                        ref
+                                            .read(signupPasswordProviderNotifier
+                                                .notifier)
+                                            .togglePassword();
+                                      },
+                                      child: Icon(
+                                        showPassword
+                                            ? CupertinoIcons.eye_fill
+                                            : CupertinoIcons.eye_slash_fill,
+                                        color: CupertinoColors.black,
+                                      ),
+                                    ),
+                                    controller: _passwordController,
+                                    cursorColor: CupertinoColors.black,
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.white,
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: passError.isNotEmpty
+                                            ? CupertinoColors.systemRed
+                                            : CupertinoColors.systemGrey,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                   Consumer(
                     builder: (context, ref, child) {
                       final passwordError = ref.watch(passwordErrorProvider);
@@ -400,63 +461,83 @@ class _SignUpState extends ConsumerState<SignUp> {
                   ),
                   Consumer(
                     builder: (context, ref, child) {
-                      final showConfirmPassword =
-                          ref.watch(signupConfirmPasswordProviderNotifier);
+                      final cpError = ref.watch(confirmPasswordErrorProvider);
                       return SizedBox(
                         height: 75,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "Confirm Password",
-                              style: GoogleFonts.lato(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
+                            RichText(
+                              text: TextSpan(
+                                text: 'Confirm Password',
+                                style: GoogleFonts.lato(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: cpError.isNotEmpty
+                                      ? CupertinoColors.systemRed
+                                      : CupertinoColors.black,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: '*',
+                                    style: GoogleFonts.roboto(
+                                      color: CupertinoColors.systemRed,
+                                    ),
+                                  )
+                                ],
                               ),
                             ),
                             const SizedBox(
                               height: 5,
                             ),
-                            Expanded(
-                              child: CupertinoTextField(
-                                focusNode: confirmPasswordFocusNode,
-                                keyboardType: TextInputType.none,
-                                prefix: const Padding(
-                                  padding: EdgeInsets.only(left: 10),
-                                  child: Icon(
-                                    CupertinoIcons.lock_fill,
-                                    color: CupertinoColors.black,
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final showConfirmPassword = ref.watch(
+                                    signupConfirmPasswordProviderNotifier);
+                                return Expanded(
+                                  child: CupertinoTextField(
+                                    focusNode: confirmPasswordFocusNode,
+                                    keyboardType: TextInputType.none,
+                                    prefix: const Padding(
+                                      padding: EdgeInsets.only(left: 10),
+                                      child: Icon(
+                                        CupertinoIcons.lock_fill,
+                                        color: CupertinoColors.black,
+                                      ),
+                                    ),
+                                    obscureText: !showConfirmPassword,
+                                    suffix: CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      onPressed: () {
+                                        ref
+                                            .read(
+                                                signupConfirmPasswordProviderNotifier
+                                                    .notifier)
+                                            .togglePassword();
+                                      },
+                                      child: Icon(
+                                        showConfirmPassword
+                                            ? CupertinoIcons.eye_fill
+                                            : CupertinoIcons.eye_slash_fill,
+                                        color: CupertinoColors.black,
+                                      ),
+                                    ),
+                                    controller: _confirmPasswordController,
+                                    padding:
+                                        const EdgeInsets.only(top: 0, left: 10),
+                                    cursorColor: CupertinoColors.black,
+                                    decoration: BoxDecoration(
+                                      color: CupertinoColors.white,
+                                      borderRadius: BorderRadius.circular(5),
+                                      border: Border.all(
+                                        color: cpError.isNotEmpty
+                                            ? CupertinoColors.systemRed
+                                            : CupertinoColors.systemGrey,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                obscureText: !showConfirmPassword,
-                                suffix: CupertinoButton(
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    ref
-                                        .read(
-                                            signupConfirmPasswordProviderNotifier
-                                                .notifier)
-                                        .togglePassword();
-                                  },
-                                  child: Icon(
-                                    showConfirmPassword
-                                        ? CupertinoIcons.eye_fill
-                                        : CupertinoIcons.eye_slash_fill,
-                                    color: CupertinoColors.black,
-                                  ),
-                                ),
-                                controller: _confirmPasswordController,
-                                padding:
-                                    const EdgeInsets.only(top: 0, left: 10),
-                                cursorColor: CupertinoColors.black,
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.white,
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(
-                                    color: CupertinoColors.systemGrey,
-                                  ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -483,31 +564,22 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 20,
                   ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final isLoading = ref.watch(spinnerProvider);
-                      return SizedBox(
-                        height: 50,
-                        width: double.infinity,
-                        child: CupertinoButton(
-                            color: CupertinoColors.activeBlue,
-                            padding: EdgeInsets.zero,
-                            child: isLoading
-                                ? const CupertinoActivityIndicator(
-                                    color: CupertinoColors.white,
-                                  )
-                                : Text(
-                                    'Sign Up',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                            onPressed: () {
-                              signupPressed();
-                            }),
-                      );
-                    },
+                  SizedBox(
+                    height: 50,
+                    width: double.infinity,
+                    child: CupertinoButton(
+                        color: CupertinoColors.activeBlue,
+                        padding: EdgeInsets.zero,
+                        child: Text(
+                          'Sign Up',
+                          style: GoogleFonts.roboto(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        onPressed: () {
+                          signupPressed();
+                        }),
                   )
                 ],
               ),

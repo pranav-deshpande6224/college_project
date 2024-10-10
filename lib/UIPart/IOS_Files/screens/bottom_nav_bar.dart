@@ -3,7 +3,7 @@ import 'package:college_project/UIPart/IOS_Files/screens/profile/profile.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'chats/chats.dart';
-import 'myads/my_ads.dart';
+import 'myads/active_ads.dart';
 import 'sell/sell.dart';
 
 class BottomNavBar extends StatefulWidget {

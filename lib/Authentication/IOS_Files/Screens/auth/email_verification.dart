@@ -43,10 +43,10 @@ class _EmailVerificationState extends State<EmailVerification> {
         handler.firebaseAuth.currentUser!.reload();
         final user = handler.firebaseAuth.currentUser;
         if (user!.emailVerified) {
-          handler.user = handler.firebaseAuth.currentUser;
+          handler.newUser.user = handler.firebaseAuth.currentUser;
           _timer.cancel();
           final pref = await SharedPreferences.getInstance();
-          await pref.setString('uid', handler.user!.uid);
+          await pref.setString('uid', handler.newUser.user!.uid);
           if (context.mounted) {
             Navigator.of(context).pushAndRemoveUntil(
               CupertinoPageRoute(
