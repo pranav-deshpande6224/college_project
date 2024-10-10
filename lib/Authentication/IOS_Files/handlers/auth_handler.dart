@@ -51,13 +51,14 @@ class AuthHandler {
   }
 
   Future<void> signUp(String email, String password, BuildContext context,
-      BuildContext signUpContext, String fName, String lName) async {
+      BuildContext signUpContext, String fName) async {
     try {
       UserCredential userCredential = await firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
       newUser.user = userCredential.user;
-      newUser.user!.updateDisplayName('$fName $lName');
-      await storeSignUpData(email, fName, lName);
+      newUser.user!.updateDisplayName(fName);
+      if (!context.mounted) return;
+      await storeSignUpData(context, email, fName);
       if (!context.mounted) return;
       Navigator.pop(signUpContext);
       Navigator.push(
@@ -146,10 +147,9 @@ class AuthHandler {
         if (newUser.user != null) {
           final isUserExists = await checkUserExistOrNot(newUser.user!.email!);
           if (!isUserExists) {
+            if (!context.mounted) return;
             await storeSignUpData(
-                newUser.user!.email!,
-                newUser.user!.displayName!.split('')[0],
-                newUser.user!.displayName!.split('')[1]);
+                context, newUser.user!.email!, newUser.user!.displayName!);
           }
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('uid', newUser.user!.uid);
@@ -159,6 +159,7 @@ class AuthHandler {
           }
         }
       } else {
+        if (!googleSignInContext.mounted) return;
         Navigator.of(googleSignInContext).pop();
       }
     } on FirebaseAuthException catch (e) {
@@ -188,17 +189,17 @@ class AuthHandler {
     ));
   }
 
-  Future<void> storeSignUpData(
-      String email, String firstName, String lastName) async {
+  Future<void> storeSignUpData(BuildContext context, String email,
+      String firstName) async {
     if (newUser.user != null) {
       try {
         await fireStore.collection('users').doc(newUser.user!.uid).set({
           'email': email,
           'firstName': firstName,
-          'lastName': lastName,
         });
       } catch (e) {
-        print(e.toString());
+        if (!context.mounted) return;
+        showErrorDialog(context, 'Alert', e.toString());
       }
     }
   }

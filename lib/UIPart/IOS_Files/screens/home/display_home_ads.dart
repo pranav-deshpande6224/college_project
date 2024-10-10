@@ -4,6 +4,7 @@ import 'package:college_project/UIPart/IOS_Files/model/category.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/sell/detail_screen.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/home_ads.dart';
+import 'package:college_project/UIPart/repository/user_repository.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/Cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,7 @@ class DisplayHomeAds extends ConsumerStatefulWidget {
 class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
   late AuthHandler handler;
   final ScrollController homeAdScrollController = ScrollController();
+  final UserRepository userRepository = UserRepository();
   final List<SellCategory> categoryList = const [
     SellCategory(
         icon: CupertinoIcons.phone,
@@ -90,14 +92,18 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
     homeAdScrollController.dispose();
     super.dispose();
   }
+  void fetchInitialData()  {
+    WidgetsBinding.instance.addPostFrameCallback((_) async{
+      await userRepository.getUserdata();
+      ref.read(homeAdsprovider.notifier).fetchInitialItems();
+    });
+  }
 
   @override
   void initState() {
     handler = AuthHandler.authHandlerInstance;
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(homeAdsprovider.notifier).fetchInitialItems();
-    });
+    fetchInitialData();
     homeAdScrollController.addListener(() {
       double maxScroll = homeAdScrollController.position.maxScrollExtent;
       double currentScroll = homeAdScrollController.position.pixels;

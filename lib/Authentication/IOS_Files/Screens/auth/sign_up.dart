@@ -19,13 +19,13 @@ class SignUp extends ConsumerStatefulWidget {
 
 class _SignUpState extends ConsumerState<SignUp> {
   final _fnameController = TextEditingController();
-  final _lnameController = TextEditingController();
+  //final _lnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final emailPattern = r'^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$';
   final fnameFocusNode = FocusNode();
-  final lnameFocusNode = FocusNode();
+  //final lnameFocusNode = FocusNode();
   final emailFocusNode = FocusNode();
   final passwordFocusNode = FocusNode();
   final confirmPasswordFocusNode = FocusNode();
@@ -40,14 +40,14 @@ class _SignUpState extends ConsumerState<SignUp> {
   @override
   void dispose() {
     fnameFocusNode.dispose();
-    lnameFocusNode.dispose();
+    //lnameFocusNode.dispose();
     emailFocusNode.dispose();
     passwordFocusNode.dispose();
     confirmPasswordFocusNode.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _fnameController.dispose();
-    _lnameController.dispose();
+   // _lnameController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
@@ -57,25 +57,25 @@ class _SignUpState extends ConsumerState<SignUp> {
     if (_fnameController.text.trim().isEmpty) {
       ref
           .read(fnameErrorProvider.notifier)
-          .updateError('Please enter your First Name');
+          .updateError('Please enter your Name');
     } else if (_fnameController.text.trim().length < 3) {
       ref
           .read(fnameErrorProvider.notifier)
-          .updateError('First Name should be atleast 3 characters');
+          .updateError('Name should be atleast 3 characters');
     } else {
       ref.read(fnameErrorProvider.notifier).updateError('');
     }
-    if (_lnameController.text.trim().isEmpty) {
-      ref
-          .read(lnameErrorProvider.notifier)
-          .updateError('Please enter your Last Name');
-    } else if (_lnameController.text.trim().length < 3) {
-      ref
-          .read(lnameErrorProvider.notifier)
-          .updateError('Last Name should be atleast 3 characters');
-    } else {
-      ref.read(lnameErrorProvider.notifier).updateError('');
-    }
+    // if (_lnameController.text.trim().isEmpty) {
+    //   ref
+    //       .read(lnameErrorProvider.notifier)
+    //       .updateError('Please enter your Last Name');
+    // } else if (_lnameController.text.trim().length < 3) {
+    //   ref
+    //       .read(lnameErrorProvider.notifier)
+    //       .updateError('Last Name should be atleast 3 characters');
+    // } else {
+    //   ref.read(lnameErrorProvider.notifier).updateError('');
+    // }
     if (_emailController.text.trim().isEmpty) {
       ref
           .read(emailErrorProvider.notifier)
@@ -108,12 +108,11 @@ class _SignUpState extends ConsumerState<SignUp> {
       ref.read(confirmPasswordErrorProvider.notifier).updateError('');
     }
     final fnameError = ref.read(fnameErrorProvider);
-    final lnameError = ref.read(lnameErrorProvider);
+    //final lnameError = ref.read(lnameErrorProvider);
     final emailError = ref.read(emailErrorProvider);
     final passwordError = ref.read(passwordErrorProvider);
     final confirmPasswordError = ref.read(confirmPasswordErrorProvider);
     if (fnameError.isEmpty &&
-        lnameError.isEmpty &&
         emailError.isEmpty &&
         passwordError.isEmpty &&
         confirmPasswordError.isEmpty) {
@@ -127,8 +126,8 @@ class _SignUpState extends ConsumerState<SignUp> {
               _passwordController.text.trim(),
               context,
               signUpContext,
-              _fnameController.text.trim(),
-              _lnameController.text.trim(),
+              _fnameController.text.trim()
+           //   _lnameController.text.trim(),
             );
             return const Center(
               child: CupertinoActivityIndicator(
@@ -141,7 +140,7 @@ class _SignUpState extends ConsumerState<SignUp> {
 
   void unfocusTextFields() {
     fnameFocusNode.unfocus();
-    lnameFocusNode.unfocus();
+  //  lnameFocusNode.unfocus();
     emailFocusNode.unfocus();
     passwordFocusNode.unfocus();
     confirmPasswordFocusNode.unfocus();
@@ -239,7 +238,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                           .read(confirmPasswordErrorProvider.notifier)
                           .updateError('');
                       ref.read(fnameErrorProvider.notifier).updateError('');
-                      ref.read(lnameErrorProvider.notifier).updateError('');
+                    //  ref.read(lnameErrorProvider.notifier).updateError('');
 
                       Navigator.of(context).pop();
                     },
@@ -269,7 +268,7 @@ class _SignUpState extends ConsumerState<SignUp> {
                     builder: (context, ref, child) {
                       final fnameError = ref.watch(fnameErrorProvider);
                       return getTextField(
-                          'First Name',
+                          'Name',
                           _fnameController,
                           CupertinoIcons.person_add_solid,
                           TextInputType.name,
@@ -296,37 +295,37 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 10,
                   ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final lastNameError = ref.watch(lnameErrorProvider);
-                      return getTextField(
-                          'Last Name',
-                          _lnameController,
-                          CupertinoIcons.person_add_solid,
-                          TextInputType.name,
-                          lnameFocusNode,
-                          lastNameError);
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final lastNameError = ref.watch(lnameErrorProvider);
-                      return lastNameError.isEmpty
-                          ? const SizedBox()
-                          : Padding(
-                              padding: const EdgeInsets.only(top: 10),
-                              child: Text(
-                                lastNameError,
-                                style: GoogleFonts.roboto(
-                                    color: CupertinoColors.systemRed,
-                                    fontSize: 16),
-                              ),
-                            );
-                    },
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  // Consumer(
+                  //   builder: (context, ref, child) {
+                  //     final lastNameError = ref.watch(lnameErrorProvider);
+                  //     return getTextField(
+                  //         'Last Name',
+                  //         _lnameController,
+                  //         CupertinoIcons.person_add_solid,
+                  //         TextInputType.name,
+                  //         lnameFocusNode,
+                  //         lastNameError);
+                  //   },
+                  // ),
+                  // Consumer(
+                  //   builder: (context, ref, child) {
+                  //     final lastNameError = ref.watch(lnameErrorProvider);
+                  //     return lastNameError.isEmpty
+                  //         ? const SizedBox()
+                  //         : Padding(
+                  //             padding: const EdgeInsets.only(top: 10),
+                  //             child: Text(
+                  //               lastNameError,
+                  //               style: GoogleFonts.roboto(
+                  //                   color: CupertinoColors.systemRed,
+                  //                   fontSize: 16),
+                  //             ),
+                  //           );
+                  //   },
+                  // ),
+                  // const SizedBox(
+                  //   height: 10,
+                  // ),
                   Consumer(
                     builder: (context, ref, child) {
                       final emailError = ref.watch(emailErrorProvider);

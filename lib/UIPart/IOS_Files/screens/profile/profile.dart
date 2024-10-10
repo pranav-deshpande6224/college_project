@@ -46,7 +46,7 @@ class _ProfileState extends ConsumerState<Profile> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       handler.newUser.user = null;
-      
+
       if (!signOutContext.mounted) return;
       Navigator.pop(signOutContext);
       moveToLogin();
@@ -150,8 +150,9 @@ class _ProfileState extends ConsumerState<Profile> {
                             child: Text(
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              handler.newUser.user?.displayName ??
-                                  '${handler.newUser.firstName} ${handler.newUser.lastName}',
+                              handler.newUser.user != null
+                                  ? (handler.newUser.firstName ?? '')
+                                  : 'Unknown user',
                               style: GoogleFonts.roboto(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w500,
@@ -187,11 +188,12 @@ class _ProfileState extends ConsumerState<Profile> {
                             ),
                           ],
                         ),
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true)
+                        onPressed: () async {
+                          await Navigator.of(context, rootNavigator: true)
                               .push(CupertinoPageRoute(builder: (ctx) {
                             return const ProfileDetailScreen();
                           }));
+                          setState(() {});
                         },
                       ),
                     )

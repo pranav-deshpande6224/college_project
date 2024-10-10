@@ -161,65 +161,64 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
           url.add(downloadURL);
         }
-          CollectionReference myActiveAdsCollection = fbCloudFireStore
-              .collection('users')
-              .doc(handler.newUser.user!.uid)
-              .collection('MyActiveAds');
-          final timeStamp = FieldValue.serverTimestamp();
-          DocumentReference adDocRef = await myActiveAdsCollection.add({
-            'adTitle': _adTitleController.text.trim(),
-            'adDescription': _adDescriptionController.text.trim(),
-            'price': double.parse(_priceController.text.trim()),
-            'brand': categoryForPostingData == Constants.mobilePhone
-                ? _brandController.text.trim()
-                : '',
-            'tablet_type': categoryForPostingData == Constants.tablet
-                ? _tabletBrands[ref.read(selectedIpadProvider)]
-                : '',
-            'charger_type':
-                categoryForPostingData == Constants.mobileChargerLaptopCharger
-                    ? chargers[ref.read(selectChargerProvider)]
-                    : '',
-            'images': url,
-            'createdAt': timeStamp,
-            'postedBy': handler.newUser.user?.displayName ??
-                '${handler.newUser.firstName} ${handler.newUser.lastName}',
-            'categoryName': widget.categoryName,
-            'subCategoryName': widget.subCategoryName,
-            'userId': handler.newUser.user!.uid
+        CollectionReference myActiveAdsCollection = fbCloudFireStore
+            .collection('users')
+            .doc(handler.newUser.user!.uid)
+            .collection('MyActiveAds');
+        final timeStamp = FieldValue.serverTimestamp();
+        DocumentReference adDocRef = await myActiveAdsCollection.add({
+          'adTitle': _adTitleController.text.trim(),
+          'adDescription': _adDescriptionController.text.trim(),
+          'price': double.parse(_priceController.text.trim()),
+          'brand': categoryForPostingData == Constants.mobilePhone
+              ? _brandController.text.trim()
+              : '',
+          'tablet_type': categoryForPostingData == Constants.tablet
+              ? _tabletBrands[ref.read(selectedIpadProvider)]
+              : '',
+          'charger_type':
+              categoryForPostingData == Constants.mobileChargerLaptopCharger
+                  ? chargers[ref.read(selectChargerProvider)]
+                  : '',
+          'images': url,
+          'createdAt': timeStamp,
+          'postedBy': '${handler.newUser.firstName}',
+          'categoryName': widget.categoryName,
+          'subCategoryName': widget.subCategoryName,
+          'userId': handler.newUser.user!.uid
+        });
+        CollectionReference allAdsCollection =
+            fbCloudFireStore.collection('AllAds');
+        QuerySnapshot existingPost = await allAdsCollection
+            .where('adReference', isEqualTo: adDocRef)
+            .get();
+        if (existingPost.docs.isEmpty) {
+          allAdsCollection.add({
+            'adReference':
+                adDocRef, // Store reference to the ad document in MyActiveAds
+            'createdAt': timeStamp
           });
-          CollectionReference allAdsCollection =
-              fbCloudFireStore.collection('AllAds');
-          QuerySnapshot existingPost = await allAdsCollection
-              .where('adReference', isEqualTo: adDocRef)
-              .get();
-          if (existingPost.docs.isEmpty) {
-            allAdsCollection.add({
-              'adReference':
-                  adDocRef, // Store reference to the ad document in MyActiveAds
-              'createdAt': timeStamp
-            });
-          }
-          CollectionReference categoryCollection =
-              fbCloudFireStore.collection('Category');
-          DocumentReference categoryDocRef =
-              categoryCollection.doc(widget.categoryName);
-          DocumentReference subcategoryDocRef = categoryDocRef
-              .collection('Subcategories')
-              .doc(widget.subCategoryName);
-          QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
-              .collection('Ads')
-              .where('adReference', isEqualTo: adDocRef)
-              .get();
+        }
+        CollectionReference categoryCollection =
+            fbCloudFireStore.collection('Category');
+        DocumentReference categoryDocRef =
+            categoryCollection.doc(widget.categoryName);
+        DocumentReference subcategoryDocRef = categoryDocRef
+            .collection('Subcategories')
+            .doc(widget.subCategoryName);
+        QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
+            .collection('Ads')
+            .where('adReference', isEqualTo: adDocRef)
+            .get();
 
-          if (existingSubcategoryAd.docs.isEmpty) {
-            // If the ad reference does not exist in the subcategory, add it
-            subcategoryDocRef
-                .collection('Ads')
-                .add({'adReference': adDocRef, 'createdAt': timeStamp});
-          } else {
-            print("This ad reference already exists in the subcategory");
-          }
+        if (existingSubcategoryAd.docs.isEmpty) {
+          // If the ad reference does not exist in the subcategory, add it
+          subcategoryDocRef
+              .collection('Ads')
+              .add({'adReference': adDocRef, 'createdAt': timeStamp});
+        } else {
+          print("This ad reference already exists in the subcategory");
+        }
       }).then((_) {
         if (!context.mounted) {
           return;
@@ -242,8 +241,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           builder: (ctx) {
             return AlertDialog(
               title: Text('Alert', style: GoogleFonts.roboto()),
-              content: Text(e.toString(),
-                  style: GoogleFonts.roboto()),
+              content: Text(e.toString(), style: GoogleFonts.roboto()),
               actions: [
                 CupertinoDialogAction(
                   child: Text('Okay', style: GoogleFonts.roboto()),
