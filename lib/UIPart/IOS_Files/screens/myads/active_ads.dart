@@ -1,9 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
+import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
 import 'package:college_project/UIPart/IOS_Files/widgets/ad_card.dart';
+import 'package:college_project/UIPart/Providers/pagination_active_ads/home_ads.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/show_ads.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MyAds extends ConsumerStatefulWidget {
   const MyAds({super.key});
@@ -37,18 +42,113 @@ class _MyAdsState extends ConsumerState<MyAds> {
     super.dispose();
   }
 
+  void sellTheItem(Item item) async {
+    if (handler.newUser.user != null) {
+      print('reaching here');
+      final firestore = handler.fireStore;
+      late BuildContext sellContext;
+      try {
+        showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              sellContext = ctx;
+              return Center(
+                child: CupertinoActivityIndicator(
+                  radius: 15,
+                  color: CupertinoColors.activeBlue,
+                ),
+              );
+            });
+        await firestore.runTransaction((transaction) async {
+          DocumentSnapshot<Map<String, dynamic>> snapshot = await firestore
+              .collection('users')
+              .doc(handler.newUser.user!.uid)
+              .collection('MyActiveAds')
+              .doc(item.id)
+              .get();
+          DocumentReference<Map<String, dynamic>> docRef = snapshot.reference;
+          Query<Map<String, dynamic>> allAdsQuery = firestore
+              .collection('AllAds')
+              .where('adReference', isEqualTo: docRef);
+          QuerySnapshot<Map<String, dynamic>> querySnapshot =
+              await allAdsQuery.get();
+          Query<Map<String, dynamic>> categoryAdsQuery = firestore
+              .collection('Category')
+              .doc(item.categoryName)
+              .collection('Subcategories')
+              .doc(item.subCategoryName)
+              .collection('Ads')
+              .where('adReference', isEqualTo: docRef);
+          QuerySnapshot<Map<String, dynamic>> categoryQuerySnapshot =
+              await categoryAdsQuery.get();
+          firestore
+              .collection('users')
+              .doc(handler.newUser.user!.uid)
+              .collection('MySoldAds')
+              .doc()
+              .set(item.toJson());
+          await querySnapshot.docs.first.reference.delete();
+          await categoryQuerySnapshot.docs.first.reference.delete();
+          await snapshot.reference.delete();
+        });
+        ref.read(showActiveAdsProvider.notifier).deleteItem(item);
+        
+        ref.read(homeAdsprovider.notifier).deleteItem(item);
+        //ref.read(showCatAdsProvider.notifier).deleteItem(item);
+        Navigator.of(sellContext).pop();
+        print('done executing');
+      } catch (e) {
+        if (sellContext.mounted) {
+          Navigator.of(sellContext).pop();
+        }
+        showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              return CupertinoAlertDialog(
+                title: Text(
+                  'Alert',
+                  style: GoogleFonts.roboto(),
+                ),
+                content: Text(
+                  e.toString(),
+                  style: GoogleFonts.roboto(),
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Okay',
+                        style: GoogleFonts.roboto(),
+                      ))
+                ],
+              );
+            });
+      }
+    } else {
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          CupertinoPageRoute(builder: (ctx) => const LoginIos()),
+          (Route<dynamic> route) => false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final itemState = ref.watch(showActiveAdsProvider);
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text('My Ads'),
+        middle: Text(
+          'My Active Ads',
+          style: GoogleFonts.roboto(),
+        ),
       ),
       child: SafeArea(
         child: itemState.when(
           data: (adState) {
             if (adState.items.isEmpty) {
               return CustomScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
                 controller: activeAdScrollController,
                 slivers: [
                   CupertinoSliverRefreshControl(
@@ -56,79 +156,74 @@ class _MyAdsState extends ConsumerState<MyAds> {
                       ref.read(showActiveAdsProvider.notifier).refreshItems();
                     },
                   ),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height,
-                      width: MediaQuery.of(context).size.width,
-                      child: Center(
-                        child: Text('No Active Ads'),
-                      ),
-                    ),
-                  )
+                  SliverFillRemaining(
+                    child: Center(child: Text('No Active Ads')),
+                  ),
                 ],
               );
             }
-            return CustomScrollView(
-              controller: activeAdScrollController,
-              slivers: [
-                CupertinoSliverRefreshControl(
-                  onRefresh: () async {
-                    await ref
-                        .read(showActiveAdsProvider.notifier)
-                        .refreshItems();
-                  },
-                ),
-                SliverList(
-                  delegate: SliverChildBuilderDelegate((ctx, index) {
-                    final item = adState.items[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.of(context, rootNavigator: true).push(
-                          CupertinoPageRoute(
-                            builder: (ctx) => ProductDetailScreen(
-                              item: item,
-                              yourAd: true,
-                            ),
+            return Padding(
+              padding: const EdgeInsets.all(10),
+              child: CustomScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                controller: activeAdScrollController,
+                slivers: [
+                  CupertinoSliverRefreshControl(
+                    onRefresh: () async {
+                      ref.read(showActiveAdsProvider.notifier).refreshItems();
+                    },
+                  ),
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, index) {
+                        final item = adState.items[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context, rootNavigator: true).push(
+                              CupertinoPageRoute(
+                                builder: (ctx) => ProductDetailScreen(
+                                  item: item,
+                                  yourAd: true,
+                                ),
+                              ),
+                            );
+                          },
+                          child: AdCard(
+                            cardIndex: index,
+                            ad: item,
+                            adSold: sellTheItem,
+                            isSold: false,
                           ),
                         );
                       },
+                      childCount: adState.items.length,
+                    ),
+                  ),
+                  if (adState.isLoadingMore)
+                    SliverToBoxAdapter(
                       child: Padding(
-                        padding:
-                            const EdgeInsets.only(left: 10, right: 10, top: 10),
-                        child: AdCard(
-                          cardIndex: index,
-                          ad: item,
-                          // adSold: markAsSold,
-                          isSold: false,
-                        ),
-                      ),
-                    );
-                  }, childCount: adState.items.length),
-                ),
-                if (adState.isLoadingMore)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CupertinoActivityIndicator(
-                              radius: 15,
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            Text(
-                              'Fetching Content...',
-                              style: TextStyle(),
-                            )
-                          ],
+                        padding: const EdgeInsets.all(20),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CupertinoActivityIndicator(
+                                radius: 15,
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Text(
+                                'Fetching Content...',
+                                style: TextStyle(),
+                              )
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             );
           },
           error: (error, stack) => Center(child: Text('Error: $error')),

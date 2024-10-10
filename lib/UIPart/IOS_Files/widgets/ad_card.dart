@@ -11,11 +11,11 @@ class AdCard extends ConsumerWidget {
   final int cardIndex;
   final Item ad;
   final bool isSold;
-  //final void Function(Item item)? adSold;
+  final void Function(Item item)? adSold;
   const AdCard(
       {required this.cardIndex,
       required this.ad,
-      // required this.adSold,
+      required this.adSold,
       required this.isSold,
       super.key});
 
@@ -42,14 +42,41 @@ class AdCard extends ConsumerWidget {
             .delete();
       }).then((value) {
         print('Reaching here');
-      //  ref.read(soldAdsProvider.notifier).deleteItem(ad);
+        ref.read(showSoldAdsProvider.notifier).deleteItem(ad);
         if (anotherContext.mounted) {
           Navigator.of(anotherContext).pop();
         }
       });
     } catch (e) {
-      //TODO:  Show the error message to the USer
-      print(e.toString());
+      if (anotherContext.mounted) {
+        Navigator.of(anotherContext).pop();
+      }
+      if (!context.mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder: (ctx) {
+          return CupertinoAlertDialog(
+            title: Text(
+              'Alert',
+              style: GoogleFonts.roboto(),
+            ),
+            content: Text(
+              e.toString(),
+              style: GoogleFonts.roboto(),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Okay',
+                    style: GoogleFonts.roboto(),
+                  ))
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -107,7 +134,7 @@ class AdCard extends ConsumerWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      // adSold(ad);
+                      //adSold(ad);
                       showCupertinoDialog(
                           context: context,
                           builder: (ctx) {
@@ -137,7 +164,7 @@ class AdCard extends ConsumerWidget {
                                         style: GoogleFonts.roboto()),
                                     onPressed: () {
                                       Navigator.of(ctx).pop();
-                                      //adSold!(ad);
+                                      adSold!(ad);
                                     },
                                   ),
                                 ]);
@@ -250,20 +277,21 @@ class AdCard extends ConsumerWidget {
                     children: [
                       Expanded(
                         flex: 3,
-                        child: ClipRRect(
-                          child: CachedNetworkImage(
-                            imageUrl: ad.images[0],
-                            placeholder: (context, url) {
-                              return Image.asset(
-                                  'assets/images/placeholder.jpg');
-                            },
-                            errorWidget: (context, url, error) {
-                              return const Center(
-                                child:
-                                    Icon(CupertinoIcons.exclamationmark_circle),
-                              );
-                            },
-                          ),
+                        child: CachedNetworkImage(
+                          imageUrl: ad.images[0],
+                          placeholder: (context, url) {
+                            return ClipRRect(
+                              child: Image.asset(
+                                'assets/images/placeholder.jpg',
+                              ),
+                            );
+                          },
+                          errorWidget: (context, url, error) {
+                            return const Center(
+                              child:
+                                  Icon(CupertinoIcons.exclamationmark_circle),
+                            );
+                          },
                         ),
                       ),
                       Expanded(

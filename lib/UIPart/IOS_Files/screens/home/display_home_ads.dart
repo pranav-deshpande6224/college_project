@@ -115,11 +115,12 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
       data: (homeState) {
         if (homeState.items.isEmpty) {
           return CustomScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
             controller: homeAdScrollController,
             slivers: [
               CupertinoSliverRefreshControl(
                 onRefresh: () async {
-                  //   ref.read(showHomeAdsProvider.notifier).refreshAds();
+                  ref.read(homeAdsprovider.notifier).refreshItems();
                 },
               ),
               SliverToBoxAdapter(
@@ -227,6 +228,7 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
         }
         return CustomScrollView(
           controller: homeAdScrollController,
+          physics: AlwaysScrollableScrollPhysics(),
           slivers: [
             CupertinoSliverRefreshControl(
               onRefresh: () async {

@@ -42,8 +42,11 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
             .limit(_itemsPerPageHome);
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
+        
         List<Item> items = [];
+        print(querySnapshot.docs.length);
         for (final doc in querySnapshot.docs) {
+          
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
           DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
           Timestamp timeStamp = doc.data()['createdAt'];
@@ -74,6 +77,13 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
     _lastHomeDocument = null;
     _hasMoreHome = true;
     await fetchInitialItems();
+  }
+
+  void deleteItem(Item item) {
+    state = AsyncValue.data(state.asData!.value.copyWith(
+        items: state.asData!.value.items.where((element) {
+      return element.id != item.id;
+    }).toList()));
   }
 
   Future<void> fetchMoreItems() async {
@@ -123,7 +133,8 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
 }
 
 final homeAdsprovider =
-    StateNotifierProvider<ShowHomeAds, AsyncValue<HomeAdState>>((ref) {
+    StateNotifierProvider.autoDispose<ShowHomeAds, AsyncValue<HomeAdState>>(
+        (ref) {
   return ShowHomeAds();
 });
 

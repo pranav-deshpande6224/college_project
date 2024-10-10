@@ -73,10 +73,11 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
     await fetchInitialItems();
   }
 
-  void resetState() {
-    state = AsyncValue.loading();
-  }
-
+void deleteItem(Item item){
+  state = AsyncValue.data(state.asData!.value.copyWith(items: state.asData!.value.items.where((element) {
+    return element.id != item.id;
+  }).toList()));
+}
   Future<void> fetchMoreItems() async {
     if (_isLoadingSold ||
         !_hasMoreSold ||

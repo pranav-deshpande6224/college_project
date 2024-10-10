@@ -2,7 +2,6 @@ import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.d
 import 'package:college_project/UIPart/IOS_Files/widgets/ad_card.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/show_sold_ads.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -42,68 +41,65 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
   Widget build(BuildContext context) {
     final soldItemState = ref.watch(showSoldAdsProvider);
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        padding: EdgeInsetsDirectional.zero,
-        leading: IconButton(
-            onPressed: () {
-              ref.read(showSoldAdsProvider.notifier).resetState();
-              Navigator.of(context).pop();
-            },
-            icon: Icon(
-              CupertinoIcons.left_chevron,
-              size: 28,
-            )),
-        middle: Text(
-          'MY SOLD ADS',
-          style: GoogleFonts.roboto(),
-        ),
-      ),
       child: SafeArea(
         child: soldItemState.when(
           data: (soldAdState) {
             if (soldAdState.items.isEmpty) {
               return CustomScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
                 controller: soldAdScrollController,
                 slivers: [
+                  CupertinoSliverNavigationBar(
+                    largeTitle: Text(
+                      'My Sold Ads',
+                      style: GoogleFonts.roboto(),
+                    ),
+                  ),
                   CupertinoSliverRefreshControl(
                     onRefresh: () async {
                       ref.read(showSoldAdsProvider.notifier).refreshItems();
                     },
                   ),
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height,
-                      width: MediaQuery.of(context).size.width,
-                      child: Center(
-                        child: Text('No Sold Ads'),
-                      ),
+                  SliverFillRemaining(
+                    child: Center(
+                      child: Text('No Sold Ads'),
                     ),
-                  )
+                  ),
                 ],
               );
             }
             return CustomScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
               controller: soldAdScrollController,
               slivers: [
+                CupertinoSliverNavigationBar(
+                  largeTitle: Text(
+                    'My SoldAds',
+                    style: GoogleFonts.roboto(),
+                  ),
+                ),
                 CupertinoSliverRefreshControl(
                   onRefresh: () async {
                     ref.read(showSoldAdsProvider.notifier).refreshItems();
                   },
                 ),
                 SliverList(
-                  delegate: SliverChildBuilderDelegate((ctx, index) {
-                    final item = soldAdState.items[index];
-                    return Padding(
-                      padding:
-                          const EdgeInsets.only(left: 10, right: 10, top: 10),
-                      child: AdCard(
-                        cardIndex: index,
-                        ad: item,
-                        // adSold: markAsSold,
-                        isSold: true,
-                      ),
-                    );
-                  }, childCount: soldAdState.items.length),
+                  delegate: SliverChildBuilderDelegate(
+                    (ctx, index) {
+                      final item = soldAdState.items[index];
+                      return Padding(
+                        padding:
+                            const EdgeInsets.only(left: 10, right: 10, top: 10),
+                        child: AdCard(
+                          cardIndex: index,
+                          ad: item,
+                          adSold: null,
+                          isSold: true,
+                        ),
+                      );
+                    },
+                    childCount: soldAdState.items.length,
+                  ),
                 ),
                 if (soldAdState.isLoadingMore)
                   SliverToBoxAdapter(

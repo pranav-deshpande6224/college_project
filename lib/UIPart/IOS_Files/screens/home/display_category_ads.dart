@@ -1,7 +1,9 @@
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
+import 'package:college_project/UIPart/Providers/pagination_active_ads/category_ads_pagination.dart';
 import 'package:flutter/Cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 
 class DisplayCategoryAds extends ConsumerStatefulWidget {
   final String categoryName;
@@ -15,14 +17,27 @@ class DisplayCategoryAds extends ConsumerStatefulWidget {
 
 class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
   late AuthHandler handler;
-  final categoryAdScrollController = ScrollController();
+  final ScrollController categoryAdScrollController = ScrollController();
   @override
   void initState() {
     handler = AuthHandler.authHandlerInstance;
-    // ref
-    //     .read(showCategoryAdsProvider.notifier)
-    //     .setCategoryAndSubCategory(widget.categoryName, widget.subCategoryName);
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(showCatAdsProvider.notifier).fetchInitialItems(
+            widget.categoryName,
+            widget.subCategoryName,
+          );
+    });
+    categoryAdScrollController.addListener(() {
+      double maxScroll = categoryAdScrollController.position.maxScrollExtent;
+      double currentScroll = categoryAdScrollController.position.pixels;
+      double delta = MediaQuery.of(context).size.width * 0.20;
+      if (maxScroll - currentScroll <= delta) {
+        ref
+            .read(showCatAdsProvider.notifier)
+            .fetchMoreItems(widget.categoryName, widget.subCategoryName);
+      }
+    });
   }
 
   @override
@@ -33,34 +48,187 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
 
   @override
   Widget build(BuildContext context) {
-    categoryAdScrollController.addListener(() {
-      double maxScroll = categoryAdScrollController.position.maxScrollExtent;
-      double currentScroll = categoryAdScrollController.position.pixels;
-      double delta = MediaQuery.of(context).size.width * 0.20;
-      if (maxScroll - currentScroll <= delta) {
-     //   ref.read(showCategoryAdsProvider.notifier).fetchNextCategoryBatch();
-      }
-    });
-    return SafeArea(
-      child: CustomScrollView(
+    final catItemState = ref.watch(showCatAdsProvider);
+   
+    return catItemState.when(data: (CategoryAdsState data) {
+      return CustomScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
         controller: categoryAdScrollController,
         slivers: [
-          // CategoryItemsList(
-          //   handler: handler,
-          //   category: widget.categoryName,
-          //   subCategory: widget.subCategoryName,
-          // ),
-          // NoMoreCategoryItems(
-          //   category: widget.categoryName,
-          //   subCategory: widget.subCategoryName,
-          // ),
-          // OnGoingBottomWidgetCategory(
-          //   category: widget.categoryName,
-          //   subCategory: widget.subCategoryName,
-          // ),
+          CupertinoSliverRefreshControl(),
+          data.items.isEmpty
+              ? SliverFillRemaining(
+                  hasScrollBody: true,
+                  child: SizedBox(
+                    child: Center(
+                      child: Text(
+                        'No Ads Found',
+                      ),
+                    ),
+                  ),
+                )
+              : SliverPadding(
+                  padding: const EdgeInsets.all(8.0),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      childCount: data.items.length,
+                      (context, index) {
+                        print('getting data');
+                        final catAd = data.items[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              CupertinoPageRoute(
+                                builder: (ctx) {
+                                  return ProductDetailScreen(
+                                    item: catAd,
+                                    yourAd: catAd.userid ==
+                                        handler.newUser.user!.uid,
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                          child: Column(
+                            children: [
+                              AspectRatio(
+                                aspectRatio: 2.5,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(5),
+                                    border: Border.all(
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 4,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8,
+                                            left: 15,
+                                            bottom: 8,
+                                          ),
+                                          child: Stack(
+                                            children: [
+                                              Image.asset(
+                                                'assets/images/placeholder.jpg',
+                                              ),
+                                              Positioned(
+                                                child: Image.network(
+                                                  catAd.images[0],
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 6,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '₹ ${catAd.price}',
+                                                style: GoogleFonts.roboto(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 22,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                height: 4,
+                                              ),
+                                              Text(
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                catAd.adTitle,
+                                                style: GoogleFonts.roboto(),
+                                              ),
+                                              const SizedBox(
+                                                height: 4,
+                                              ),
+                                              Text(
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                catAd.postedBy,
+                                                style: GoogleFonts.roboto(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              const SizedBox(
+                                                height: 4,
+                                              ),
+                                              Text(
+                                                catAd.createdAt,
+                                                style: GoogleFonts.roboto(
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              )
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+          if (data.isLoadingMore)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CupertinoActivityIndicator(
+                        radius: 15,
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Text(
+                        'Fetching Content...',
+                        style: TextStyle(),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
-      ),
-    );
+      );
+    }, loading: () {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CupertinoActivityIndicator(
+              radius: 15,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            const Text('Loading...')
+          ],
+        ),
+      );
+    }, error: (Object error, StackTrace stackTrace) {
+      return Center(child: Text('Error: $error'));
+    });
   }
 }
 
@@ -139,118 +307,7 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
 
 //   @override
 //   Widget build(BuildContext context) {
-//     return SliverList(
-//       delegate: SliverChildBuilderDelegate(
-//         (context, index) {
-//           print('getting data');
-//           final catAd = items[index];
-//           return GestureDetector(
-//             onTap: () {
-//               Navigator.of(context).push(
-//                 CupertinoPageRoute(
-//                   builder: (ctx) {
-//                     return ProductDetailScreen(
-//                       item: catAd,
-//                       yourAd: catAd.userid == handler.newUser.user!.uid,
-//                     );
-//                   },
-//                 ),
-//               );
-//             },
-//             child: Column(
-//               children: [
-//                 AspectRatio(
-//                   aspectRatio: 2.5,
-//                   child: Container(
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(5),
-//                       border: Border.all(
-//                         width: 1,
-//                       ),
-//                     ),
-//                     child: Row(
-//                       children: [
-//                         Expanded(
-//                           flex: 4,
-//                           child: Padding(
-//                             padding: const EdgeInsets.only(
-//                               top: 8,
-//                               left: 15,
-//                               bottom: 8,
-//                             ),
-//                             child: Stack(
-//                               children: [
-//                                 Image.asset(
-//                                   'assets/images/placeholder.jpg',
-//                                 ),
-//                                 Positioned(
-//                                   child: Image.network(
-//                                     catAd.images[0],
-//                                   ),
-//                                 )
-//                               ],
-//                             ),
-//                           ),
-//                         ),
-//                         Expanded(
-//                           flex: 6,
-//                           child: Padding(
-//                             padding: const EdgeInsets.all(8.0),
-//                             child: Column(
-//                               crossAxisAlignment: CrossAxisAlignment.start,
-//                               children: [
-//                                 Text(
-//                                   '₹ ${catAd.price}',
-//                                   style: GoogleFonts.roboto(
-//                                     fontWeight: FontWeight.bold,
-//                                     fontSize: 22,
-//                                   ),
-//                                 ),
-//                                 const SizedBox(
-//                                   height: 4,
-//                                 ),
-//                                 Text(
-//                                   maxLines: 2,
-//                                   overflow: TextOverflow.ellipsis,
-//                                   catAd.adTitle,
-//                                   style: GoogleFonts.roboto(),
-//                                 ),
-//                                 const SizedBox(
-//                                   height: 4,
-//                                 ),
-//                                 Text(
-//                                   maxLines: 1,
-//                                   overflow: TextOverflow.ellipsis,
-//                                   catAd.postedBy,
-//                                   style: GoogleFonts.roboto(
-//                                       fontWeight: FontWeight.bold),
-//                                 ),
-//                                 const SizedBox(
-//                                   height: 4,
-//                                 ),
-//                                 Text(
-//                                   catAd.createdAt,
-//                                   style: GoogleFonts.roboto(
-//                                     fontWeight: FontWeight.w500,
-//                                   ),
-//                                 )
-//                               ],
-//                             ),
-//                           ),
-//                         )
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//                 const SizedBox(
-//                   height: 10,
-//                 )
-//               ],
-//             ),
-//           );
-//         },
-//       ),
-//     );
+//     
 //   }
 // }
 

@@ -147,6 +147,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
             return const Center(
               child: CupertinoActivityIndicator(
                 radius: 15,
+                color: CupertinoColors.activeBlue,
               ),
             );
           });

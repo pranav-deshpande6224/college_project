@@ -162,9 +162,12 @@ class AuthHandler {
         Navigator.of(googleSignInContext).pop();
       }
     } on FirebaseAuthException catch (e) {
-      Navigator.of(googleSignInContext).pop();
       if (!context.mounted) return;
+      Navigator.of(googleSignInContext).pop();
       showErrorDialog(context, 'Alert', e.toString());
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.of(googleSignInContext).pop();
     }
   }
 

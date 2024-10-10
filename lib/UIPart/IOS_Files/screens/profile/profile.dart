@@ -41,12 +41,12 @@ class _ProfileState extends ConsumerState<Profile> {
 
   Future<void> executeSignOut(BuildContext signOutContext) async {
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1));
       await handler.firebaseAuth.signOut();
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       handler.newUser.user = null;
-      //ref.read(showHomeAdsProvider.notifier).resetHomeAds();
+      
       if (!signOutContext.mounted) return;
       Navigator.pop(signOutContext);
       moveToLogin();
@@ -146,14 +146,16 @@ class _ProfileState extends ConsumerState<Profile> {
                           const SizedBox(
                             width: 10,
                           ),
-                          Text(
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            handler.newUser.user?.displayName ??
-                                '${handler.newUser.firstName} ${handler.newUser.lastName}',
-                            style: GoogleFonts.roboto(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Text(
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              handler.newUser.user?.displayName ??
+                                  '${handler.newUser.firstName} ${handler.newUser.lastName}',
+                              style: GoogleFonts.roboto(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           )
                         ],
