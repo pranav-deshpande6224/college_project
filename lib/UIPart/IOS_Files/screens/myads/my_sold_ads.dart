@@ -43,8 +43,6 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
   Widget build(BuildContext context) {
     final connectivityState = ref.watch(connectivityProvider);
     final internetState = ref.watch(internetCheckerProvider);
-
-    final soldItemState = ref.watch(showSoldAdsProvider);
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(
@@ -117,6 +115,7 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
                     ),
                   );
                 } else {
+                  final soldItemState = ref.watch(showSoldAdsProvider);
                   return soldItemState.when(
                     data: (soldAdState) {
                       if (soldAdState.items.isEmpty) {

@@ -76,6 +76,9 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
   }
 
   void resetState() {
+    _hasMore = true;
+    _isLoading = false;
+    _lastDocument = null;
     state = AsyncValue.loading();
   }
 

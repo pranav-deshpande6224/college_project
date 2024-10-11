@@ -80,7 +80,20 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
       return element.id != item.id;
     }).toList()));
   } 
+  Future<void> refreshItems(String category, String subCategory) async {
+    if (_isLoadingCategory) return; // Prevent multiple simultaneous requests
+    _lastDocument = null;
+    _hasMoreCategory = true;
+    await fetchInitialItems(category, subCategory);
+  }
 
+  void resetState(){
+    _hasMoreCategory = true;
+    _isLoadingCategory = false;
+    _lastDocument = null;
+    state = AsyncValue.loading();
+  }
+  
   Future<void> fetchMoreItems( String category, String subCategory) async {
     if (_isLoadingCategory ||
         !_hasMoreCategory ||
@@ -109,7 +122,6 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
           Timestamp timeStamp = doc.data()['createdAt'];
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
-
           return Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc);
         }).toList());
         if (moreHomeItems.isNotEmpty) {
@@ -132,7 +144,7 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
 }
 
 final showCatAdsProvider =
-    StateNotifierProvider.autoDispose<ShowCategoryAds, AsyncValue<CategoryAdsState>>((ref) {
+    StateNotifierProvider<ShowCategoryAds, AsyncValue<CategoryAdsState>>((ref) {
   return ShowCategoryAds();
 });
 

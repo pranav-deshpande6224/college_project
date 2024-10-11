@@ -85,6 +85,13 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
     }).toList()));
   }
 
+  void resetState(){
+    _hasMoreHome = true;
+    _isLoadingHome = false;
+    _lastHomeDocument = null;
+    state = AsyncValue.loading();
+  }
+
   Future<void> fetchMoreItems() async {
     if (_isLoadingHome ||
         !_hasMoreHome ||

@@ -72,6 +72,14 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
     await fetchInitialItems();
   }
 
+   void resetState() {
+    _hasMoreSold = true;
+    _isLoadingSold = false;
+    _soldLastDocument = null;
+    state = AsyncValue.loading();
+  }
+
+
   void deleteItem(Item item) {
     state = AsyncValue.data(state.asData!.value.copyWith(
         items: state.asData!.value.items.where((element) {
@@ -125,7 +133,7 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
 }
 
 final showSoldAdsProvider =
-    StateNotifierProvider.autoDispose<ShowSoldAds, AsyncValue<SoldAdState>>(
+    StateNotifierProvider<ShowSoldAds, AsyncValue<SoldAdState>>(
         (ref) {
   return ShowSoldAds();
 });

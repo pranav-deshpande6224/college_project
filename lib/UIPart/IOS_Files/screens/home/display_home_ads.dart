@@ -92,8 +92,9 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
     homeAdScrollController.dispose();
     super.dispose();
   }
-  void fetchInitialData()  {
-    WidgetsBinding.instance.addPostFrameCallback((_) async{
+
+  void fetchInitialData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       ref.read(homeAdsprovider.notifier).fetchInitialItems();
     });
   }
@@ -419,12 +420,14 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                                 children: [
                                   Text(
                                     ad.adTitle,
+                                    textAlign: TextAlign.start,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.roboto(),
                                   ),
                                   Text(
                                     maxLines: 1,
+                                    textAlign: TextAlign.start,
                                     overflow: TextOverflow.ellipsis,
                                     ad.postedBy,
                                     style: GoogleFonts.roboto(
