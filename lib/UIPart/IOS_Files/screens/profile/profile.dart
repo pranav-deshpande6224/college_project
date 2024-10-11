@@ -4,6 +4,7 @@ import 'package:college_project/UIPart/IOS_Files/model/category.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/myads/my_sold_ads.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/profile/about.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/profile/policies.dart';
+import 'package:college_project/UIPart/Providers/pagination_active_ads/show_ads.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -45,7 +46,7 @@ class _ProfileState extends ConsumerState<Profile> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       handler.newUser.user = null;
-
+      ref.read(showActiveAdsProvider.notifier).resetState();
       if (!signOutContext.mounted) return;
       Navigator.pop(signOutContext);
       moveToLogin();

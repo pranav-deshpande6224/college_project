@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
+import 'package:college_project/Authentication/Providers/internet_provider.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
 import 'package:college_project/UIPart/IOS_Files/widgets/ad_card.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/home_ads.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/show_ads.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -134,7 +136,9 @@ class _MyAdsState extends ConsumerState<MyAds> {
 
   @override
   Widget build(BuildContext context) {
-    final itemState = ref.watch(showActiveAdsProvider);
+    final connectivityState = ref.watch(connectivityProvider);
+    final internetState = ref.watch(internetCheckerProvider);
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(
@@ -143,112 +147,192 @@ class _MyAdsState extends ConsumerState<MyAds> {
         ),
       ),
       child: SafeArea(
-        child: itemState.when(
-          data: (adState) {
-            if (adState.items.isEmpty) {
-              return CustomScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                controller: activeAdScrollController,
-                slivers: [
-                  CupertinoSliverRefreshControl(
-                    onRefresh: () async {
-                      ref.read(showActiveAdsProvider.notifier).refreshItems();
-                    },
-                  ),
-                  SliverFillRemaining(
-                    child: Center(child: Text('No Active Ads')),
-                  ),
-                ],
-              );
-            }
-            return Padding(
-              padding: const EdgeInsets.all(10),
-              child: CustomScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                controller: activeAdScrollController,
-                slivers: [
-                  CupertinoSliverRefreshControl(
-                    onRefresh: () async {
-                      ref.read(showActiveAdsProvider.notifier).refreshItems();
-                    },
-                  ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, index) {
-                        final item = adState.items[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context, rootNavigator: true).push(
-                              CupertinoPageRoute(
-                                builder: (ctx) => ProductDetailScreen(
-                                  item: item,
-                                  yourAd: true,
-                                ),
-                              ),
-                            );
-                          },
-                          child: AdCard(
-                            cardIndex: index,
-                            ad: item,
-                            adSold: sellTheItem,
-                            isSold: false,
-                          ),
-                        );
-                      },
-                      childCount: adState.items.length,
-                    ),
-                  ),
-                  if (adState.isLoadingMore)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CupertinoActivityIndicator(
-                                radius: 15,
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              Text(
-                                'Fetching Content...',
-                                style: TextStyle(),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          },
-          error: (error, stack) => Center(child: Text('Error: $error')),
-          loading: () {
+          child: connectivityState.when(
+        data: (connectivityResult) {
+          if (connectivityResult == ConnectivityResult.none) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CupertinoActivityIndicator(
-                    radius: 15,
+                  Icon(
+                    CupertinoIcons.wifi_slash,
+                    color: CupertinoColors.activeBlue,
+                    size: 40,
                   ),
-                  const SizedBox(
-                    height: 10,
+                  Text(
+                    'No Internet Connection',
+                    style: GoogleFonts.roboto(),
                   ),
-                  const Text('Loading...')
+                  CupertinoButton(
+                      child: Text(
+                        'Retry',
+                        style: GoogleFonts.roboto(),
+                      ),
+                      onPressed: () async {
+                        print('retry in connectivity');
+                        ref.refresh(connectivityProvider);
+                        ref.refresh(internetCheckerProvider);
+                        await ref
+                            .read(showActiveAdsProvider.notifier)
+                            .refreshItems();
+                      })
                 ],
               ),
             );
-          },
-        ),
-      ),
+          } else {
+            return internetState.when(
+              data: (hasInternet) {
+                if (!hasInternet) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          CupertinoIcons.wifi_slash,
+                          color: CupertinoColors.activeBlue,
+                          size: 40,
+                        ),
+                        Text(
+                          'No Internet Connection',
+                          style: GoogleFonts.roboto(),
+                        ),
+                        CupertinoButton(
+                            child: Text(
+                              'Retry',
+                              style: GoogleFonts.roboto(),
+                            ),
+                            onPressed: () {
+                              print('retry in internet checker');
+                              final _ = ref.refresh(connectivityProvider);
+                              final s = ref.refresh(internetCheckerProvider);
+                              ref
+                                  .read(showActiveAdsProvider.notifier)
+                                  .refreshItems();
+                            })
+                      ],
+                    ),
+                  );
+                } else {
+                  final itemState = ref.watch(showActiveAdsProvider);
+                  return itemState.when(
+                    data: (adState) {
+                      if (adState.items.isEmpty) {
+                        return CustomScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          controller: activeAdScrollController,
+                          slivers: [
+                            CupertinoSliverRefreshControl(
+                              onRefresh: () async {
+                                await ref
+                                    .read(showActiveAdsProvider.notifier)
+                                    .refreshItems();
+                              },
+                            ),
+                            SliverFillRemaining(
+                              child: Center(child: Text('No Active Ads')),
+                            ),
+                          ],
+                        );
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: CustomScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          controller: activeAdScrollController,
+                          slivers: [
+                            CupertinoSliverRefreshControl(
+                              onRefresh: () async {
+                                await ref
+                                    .read(showActiveAdsProvider.notifier)
+                                    .refreshItems();
+                              },
+                            ),
+                            SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (ctx, index) {
+                                  final item = adState.items[index];
+                                  return GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .push(
+                                        CupertinoPageRoute(
+                                          builder: (ctx) => ProductDetailScreen(
+                                            item: item,
+                                            yourAd: true,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: AdCard(
+                                      cardIndex: index,
+                                      ad: item,
+                                      adSold: sellTheItem,
+                                      isSold: false,
+                                    ),
+                                  );
+                                },
+                                childCount: adState.items.length,
+                              ),
+                            ),
+                            if (adState.isLoadingMore)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CupertinoActivityIndicator(
+                                          radius: 15,
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Text(
+                                          'Fetching Content...',
+                                          style: TextStyle(),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                    error: (error, stack) =>
+                        Center(child: Text('Error: $error')),
+                    loading: () {
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CupertinoActivityIndicator(
+                              radius: 15,
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text('Loading...')
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+              error: (error, _) => Center(child: Text('Error: $error')),
+              loading: () => Center(child: CupertinoActivityIndicator()),
+            );
+          }
+        },
+        error: (error, _) => Center(child: Text('Error: $error')),
+        loading: () => Center(child: CupertinoActivityIndicator()),
+      )),
     );
   }
 }
-
-
 
 
 
