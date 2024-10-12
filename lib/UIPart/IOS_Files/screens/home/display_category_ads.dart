@@ -115,11 +115,10 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                               style: GoogleFonts.roboto(),
                             ),
                             onPressed: () async {
-                              
-                             final x =  ref.refresh(connectivityProvider);
-                             final y = ref.refresh(internetCheckerProvider);
-                             debugPrint(x.toString());
-                             debugPrint(y.toString());
+                              final x = ref.refresh(connectivityProvider);
+                              final y = ref.refresh(internetCheckerProvider);
+                              debugPrint(x.toString());
+                              debugPrint(y.toString());
                               await ref
                                   .read(showCatAdsProvider.notifier)
                                   .refreshItems(widget.categoryName,
@@ -138,12 +137,23 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                         CupertinoSliverRefreshControl(),
                         data.items.isEmpty
                             ? SliverFillRemaining(
-                                hasScrollBody: true,
-                                child: SizedBox(
-                                  child: Center(
-                                    child: Text(
-                                      'No Ads Found',
-                                    ),
+                                hasScrollBody: false,
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/emoji.png',
+                                        width: 100,
+                                        height: 100,
+                                      ),
+                                      Text(
+                                        'No Ads Found',
+                                        style: GoogleFonts.roboto(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               )

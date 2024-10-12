@@ -255,7 +255,23 @@ class _MyAdsState extends ConsumerState<MyAds> {
                               },
                             ),
                             SliverFillRemaining(
-                              child: Center(child: Text('No Active Ads')),
+                              child: Center(
+                                  child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/emoji.png',
+                                    height: 100,
+                                    width: 100,
+                                  ),
+                                  Text(
+                                    'No Active Ads',
+                                    style: GoogleFonts.roboto(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              )),
                             ),
                           ],
                         );

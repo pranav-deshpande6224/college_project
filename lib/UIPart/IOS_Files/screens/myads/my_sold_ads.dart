@@ -140,7 +140,23 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
                               ),
                               SliverFillRemaining(
                                 child: Center(
-                                  child: Text('No Sold Ads'),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/emoji.png',
+                                        height: 100,
+                                        width: 100,
+                                      ),
+                                      Text(
+                                        'No Sold Ads',
+                                        style: GoogleFonts.roboto(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
