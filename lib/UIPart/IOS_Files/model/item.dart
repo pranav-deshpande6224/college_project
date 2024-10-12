@@ -77,20 +77,3 @@ class Item {
     };
   }
 }
-
-// class Phones extends Item {
-//   final String brand;
-//   const Phones({
-//     required super.userid,
-//     required super.id,
-//     required super.adTitle,
-//     required super.adDescription,
-//     required this.brand,
-//     required super.createdAt,
-//     required super.price,
-//     required super.images,
-//     required super.postedBy,
-//     required super.categoryName,
-//     required super.subCategoryName,
-//   });
-// }

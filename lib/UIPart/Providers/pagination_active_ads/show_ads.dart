@@ -68,12 +68,18 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
     }
   }
 
-
   Future<void> refreshItems() async {
     if (_isLoading) return; // Prevent multiple simultaneous requests
     _lastDocument = null;
     _hasMore = true;
     await fetchInitialItems();
+  }
+
+  void resetState() {
+    _hasMore = true;
+    _isLoading = false;
+    _lastDocument = null;
+    state = AsyncValue.loading();
   }
 
   Future<void> fetchMoreItems() async {
@@ -116,14 +122,16 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
       // TODO NAvigate to login screen
     }
   }
-  void deleteItem(Item item){
-  state = AsyncValue.data(state.asData!.value.copyWith(items: state.asData!.value.items.where((element) {
-    return element.id != item.id;
-  }).toList()));
-}
+
+  void deleteItem(Item item) {
+    state = AsyncValue.data(state.asData!.value.copyWith(
+        items: state.asData!.value.items.where((element) {
+      return element.id != item.id;
+    }).toList()));
+  }
 }
 
 final showActiveAdsProvider =
-    StateNotifierProvider.autoDispose<ShowActiveAds, AsyncValue<ActiveAdsState>>((ref) {
+    StateNotifierProvider<ShowActiveAds, AsyncValue<ActiveAdsState>>((ref) {
   return ShowActiveAds();
 });

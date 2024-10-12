@@ -6,6 +6,7 @@ import 'package:college_project/UIPart/Providers/pagination_active_ads/show_sold
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 class AdCard extends ConsumerWidget {
   final int cardIndex;
@@ -24,6 +25,35 @@ class AdCard extends ConsumerWidget {
     AuthHandler handler = AuthHandler.authHandlerInstance;
     final fireStore = handler.fireStore;
     late BuildContext anotherContext;
+    final hasInternet = await InternetConnectionChecker().hasConnection;
+    if (!hasInternet) {
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            return CupertinoAlertDialog(
+              title: Text(
+                'No Internet',
+                style: GoogleFonts.roboto(),
+              ),
+              content: Text(
+                'Please check your internet connection and try again',
+                style: GoogleFonts.roboto(),
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  child: Text(
+                    'OK',
+                    style: GoogleFonts.roboto(),
+                  ),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                ),
+              ],
+            );
+          });
+      return;
+    }
     try {
       showCupertinoDialog(
           context: context,
@@ -43,12 +73,11 @@ class AdCard extends ConsumerWidget {
             .collection('MySoldAds')
             .doc(ad.id)
             .delete();
-      }).then((value) {
-        ref.read(showSoldAdsProvider.notifier).deleteItem(ad);
-        if (anotherContext.mounted) {
-          Navigator.of(anotherContext).pop();
-        }
       });
+      ref.read(showSoldAdsProvider.notifier).deleteItem(ad);
+      if (anotherContext.mounted) {
+        Navigator.of(anotherContext).pop();
+      }
     } catch (e) {
       if (anotherContext.mounted) {
         Navigator.of(anotherContext).pop();

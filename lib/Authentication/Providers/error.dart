@@ -23,9 +23,7 @@ final fnameErrorProvider = StateNotifierProvider<Error, String>(
   (_) => Error(),
 );
 
-final lnameErrorProvider = StateNotifierProvider<Error, String>(
-  (_) => Error(),
-);
+
 
 final brandError = StateNotifierProvider<Error, String>(
   (_) => Error(),

@@ -12,11 +12,7 @@ class Home extends ConsumerStatefulWidget {
 }
 
 class _HomeState extends ConsumerState<Home> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -42,8 +38,8 @@ class _HomeState extends ConsumerState<Home> {
                 ),
                 child: CupertinoSearchTextField(
                   onTap: () {
-                    Navigator.of(context, rootNavigator: true)
-                        .push(CupertinoPageRoute(builder: (ctx)=>SearchScreen()));
+                    Navigator.of(context, rootNavigator: true).push(
+                        CupertinoPageRoute(builder: (ctx) => SearchScreen()));
                   },
                   placeholder: 'Find Mobiles, Monitor and more...',
                 ),
