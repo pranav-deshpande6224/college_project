@@ -11,7 +11,11 @@ class FetchCategoryAds extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text(subCategoryName),
+        middle: Text(
+          subCategoryName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         previousPageTitle: 'Back',
       ),
       child: SafeArea(
