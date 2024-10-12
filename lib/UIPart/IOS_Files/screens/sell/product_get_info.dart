@@ -12,11 +12,14 @@ import 'package:college_project/UIPart/Providers/selected_item.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path/path.dart' as path;
 
 class ProductGetInfo extends ConsumerStatefulWidget {
   final String categoryName;
@@ -138,108 +141,149 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           (Route<dynamic> route) => false);
       return;
     }
-    late BuildContext popContext;
-    try {
-      fbCloudFireStore.runTransaction((_) async {
+    final internetCheck = await InternetConnectionChecker().hasConnection;
+    if (context.mounted) {
+      if (!internetCheck) {
         showCupertinoDialog(
             context: context,
             builder: (ctx) {
-              popContext = ctx;
-              return const Center(
-                child: CupertinoActivityIndicator(
-                  radius: 15,
-                  color: CupertinoColors.activeBlue,
-                ),
+              return CupertinoAlertDialog(
+                title: const Text('No Internet Connection'),
+                content: const Text(
+                    'Please check your internet connection and try again'),
+                actions: [
+                  CupertinoDialogAction(
+                    child: Text(
+                      'Okay',
+                      style: GoogleFonts.roboto(),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                  )
+                ],
               );
             });
-        for (int i = 0; i < ref.read(imageProvider).length; i++) {
-          String uniqueName = '${handler.newUser.user!.uid}/$uuid/image_$i.jpg';
-          UploadTask task = fbStorage
-              .ref(uniqueName)
-              .putFile(File(ref.read(imageProvider)[i].path));
-          await task.whenComplete(() => null);
-          String downloadURL = await fbStorage.ref(uniqueName).getDownloadURL();
-          url.add(downloadURL);
-        }
-        CollectionReference myActiveAdsCollection = fbCloudFireStore
-            .collection('users')
-            .doc(handler.newUser.user!.uid)
-            .collection('MyActiveAds');
-        final timeStamp = FieldValue.serverTimestamp();
-        DocumentReference adDocRef = await myActiveAdsCollection.add({
-          'adTitle': _adTitleController.text.trim(),
-          'adDescription': _adDescriptionController.text.trim(),
-          'price': double.parse(_priceController.text.trim()),
-          'brand': categoryForPostingData == Constants.mobilePhone
-              ? _brandController.text.trim()
-              : '',
-          'tablet_type': categoryForPostingData == Constants.tablet
-              ? _tabletBrands[ref.read(selectedIpadProvider)]
-              : '',
-          'charger_type':
-              categoryForPostingData == Constants.mobileChargerLaptopCharger
-                  ? chargers[ref.read(selectChargerProvider)]
-                  : '',
-          'images': url,
-          'createdAt': timeStamp,
-          'postedBy': '${handler.newUser.user!.displayName}',
-          'categoryName': widget.categoryName,
-          'subCategoryName': widget.subCategoryName,
-          'userId': handler.newUser.user!.uid
-        });
-        CollectionReference allAdsCollection =
-            fbCloudFireStore.collection('AllAds');
-        QuerySnapshot existingPost = await allAdsCollection
-            .where('adReference', isEqualTo: adDocRef)
-            .get();
-        if (existingPost.docs.isEmpty) {
-          allAdsCollection.add({
-            'adReference':
-                adDocRef, // Store reference to the ad document in MyActiveAds
-            'createdAt': timeStamp
-          });
-        }
-        CollectionReference categoryCollection =
-            fbCloudFireStore.collection('Category');
-        DocumentReference categoryDocRef =
-            categoryCollection.doc(widget.categoryName);
-        DocumentReference subcategoryDocRef = categoryDocRef
-            .collection('Subcategories')
-            .doc(widget.subCategoryName);
-        QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
-            .collection('Ads')
-            .where('adReference', isEqualTo: adDocRef)
-            .get();
+        return;
+      }
+      late BuildContext popContext;
+      try {
+        fbCloudFireStore.runTransaction((_) async {
+          showCupertinoDialog(
+              context: context,
+              builder: (ctx) {
+                popContext = ctx;
+                return const Center(
+                  child: CupertinoActivityIndicator(
+                    radius: 15,
+                    color: CupertinoColors.activeBlue,
+                  ),
+                );
+              });
+          for (int i = 0; i < ref.read(imageProvider).length; i++) {
+            final dir = await getTemporaryDirectory();
+            final targetPath =
+                "${dir.absolute.path}/${path.basename(ref.read(imageProvider)[i].path)}";
+            var compressedImage = await FlutterImageCompress.compressAndGetFile(
+              ref.read(imageProvider)[i].path,
+              targetPath,
+              quality: 90, // Adjust quality as needed
+              minWidth: 800,
+              minHeight: 600,
+            );
+            if (compressedImage != null) {
+              String fileName = path.basename(compressedImage.path);
+              String uniqueName =
+                  '${handler.newUser.user!.uid}/$uuid/${fileName}_$i.jpg';
+              UploadTask task =
+                  fbStorage.ref(uniqueName).putFile(File(compressedImage.path));
+              await task.whenComplete(() => null);
+              String downloadURL =
+                  await fbStorage.ref(uniqueName).getDownloadURL();
+              url.add(downloadURL);
+              CollectionReference myActiveAdsCollection = fbCloudFireStore
+                  .collection('users')
+                  .doc(handler.newUser.user!.uid)
+                  .collection('MyActiveAds');
+              final timeStamp = FieldValue.serverTimestamp();
+              DocumentReference adDocRef = await myActiveAdsCollection.add({
+                'adTitle': _adTitleController.text.trim(),
+                'adDescription': _adDescriptionController.text.trim(),
+                'price': double.parse(_priceController.text.trim()),
+                'brand': categoryForPostingData == Constants.mobilePhone
+                    ? _brandController.text.trim()
+                    : '',
+                'tablet_type': categoryForPostingData == Constants.tablet
+                    ? _tabletBrands[ref.read(selectedIpadProvider)]
+                    : '',
+                'charger_type': categoryForPostingData ==
+                        Constants.mobileChargerLaptopCharger
+                    ? chargers[ref.read(selectChargerProvider)]
+                    : '',
+                'images': url,
+                'createdAt': timeStamp,
+                'postedBy': '${handler.newUser.user!.displayName}',
+                'categoryName': widget.categoryName,
+                'subCategoryName': widget.subCategoryName,
+                'userId': handler.newUser.user!.uid
+              });
+              CollectionReference allAdsCollection =
+                  fbCloudFireStore.collection('AllAds');
+              QuerySnapshot existingPost = await allAdsCollection
+                  .where('adReference', isEqualTo: adDocRef)
+                  .get();
+              if (existingPost.docs.isEmpty) {
+                allAdsCollection.add({
+                  'adReference':
+                      adDocRef, // Store reference to the ad document in MyActiveAds
+                  'createdAt': timeStamp
+                });
+              }
+              CollectionReference categoryCollection =
+                  fbCloudFireStore.collection('Category');
+              DocumentReference categoryDocRef =
+                  categoryCollection.doc(widget.categoryName);
+              DocumentReference subcategoryDocRef = categoryDocRef
+                  .collection('Subcategories')
+                  .doc(widget.subCategoryName);
+              QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
+                  .collection('Ads')
+                  .where('adReference', isEqualTo: adDocRef)
+                  .get();
 
-        if (existingSubcategoryAd.docs.isEmpty) {
-          // If the ad reference does not exist in the subcategory, add it
-          subcategoryDocRef
-              .collection('Ads')
-              .add({'adReference': adDocRef, 'createdAt': timeStamp});
-        } else {
-          print("This ad reference already exists in the subcategory");
-        }
-      }).then((_) {
+              if (existingSubcategoryAd.docs.isEmpty) {
+                // If the ad reference does not exist in the subcategory, add it
+                subcategoryDocRef
+                    .collection('Ads')
+                    .add({'adReference': adDocRef, 'createdAt': timeStamp});
+              } else {
+                print("This ad reference already exists in the subcategory");
+              }
+            } else {
+              // image compression failed
+            }
+          }
+        }).then((_) {
+          if (!context.mounted) {
+            return;
+          }
+          //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
+          resetFields();
+          Navigator.of(popContext).pop();
+          if (context.mounted) {
+            Navigator.of(context)
+                .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
+          }
+        });
+      } catch (e) {
         if (!context.mounted) {
           return;
         }
-        //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
-        resetFields();
         Navigator.of(popContext).pop();
-        if (context.mounted) {
-          Navigator.of(context)
-              .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
-        }
-      });
-    } catch (e) {
-      if (!context.mounted) {
-        return;
-      }
-      Navigator.of(popContext).pop();
-      showCupertinoDialog(
+        showCupertinoDialog(
           context: context,
           builder: (ctx) {
-            return AlertDialog(
+            return CupertinoAlertDialog(
               title: Text('Alert', style: GoogleFonts.roboto()),
               content: Text(e.toString(), style: GoogleFonts.roboto()),
               actions: [
@@ -251,7 +295,9 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 )
               ],
             );
-          });
+          },
+        );
+      }
     }
   }
 
@@ -958,12 +1004,11 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                               child: Row(
                                 children: [
                                   const Spacer(),
-                                  IconButton(
-                                    padding: EdgeInsetsDirectional.zero,
-                                    onPressed: () {
+                                  GestureDetector(
+                                    onTap: () {
                                       dialog(ctx, images[selectedIndex]);
                                     },
-                                    icon: const Icon(
+                                    child: Icon(
                                       CupertinoIcons.clear_circled_solid,
                                       color: CupertinoColors.destructiveRed,
                                     ),
@@ -995,13 +1040,12 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                padding: const EdgeInsets.only(top: 5),
-                onPressed: () {
+              GestureDetector(
+                onTap: () {
                   unfocusFields();
                   _uploadImages(context);
                 },
-                icon: const Icon(
+                child: const Icon(
                   CupertinoIcons.add_circled_solid,
                   size: 50,
                 ),

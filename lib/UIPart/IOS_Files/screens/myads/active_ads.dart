@@ -11,6 +11,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 
 class MyAds extends ConsumerStatefulWidget {
   const MyAds({super.key});
@@ -48,88 +49,111 @@ class _MyAdsState extends ConsumerState<MyAds> {
     if (handler.newUser.user != null) {
       final firestore = handler.fireStore;
       late BuildContext sellContext;
-      try {
-        showCupertinoDialog(
-            context: context,
-            builder: (ctx) {
-              sellContext = ctx;
-              return Center(
-                child: CupertinoActivityIndicator(
-                  radius: 15,
-                  color: CupertinoColors.activeBlue,
-                ),
-              );
-            });
-        await firestore.runTransaction((transaction) async {
-          DocumentSnapshot<Map<String, dynamic>> snapshot = await firestore
-              .collection('users')
-              .doc(handler.newUser.user!.uid)
-              .collection('MyActiveAds')
-              .doc(item.id)
-              .get();
-          DocumentReference<Map<String, dynamic>> docRef = snapshot.reference;
-          Query<Map<String, dynamic>> allAdsQuery = firestore
-              .collection('AllAds')
-              .where('adReference', isEqualTo: docRef);
-          QuerySnapshot<Map<String, dynamic>> querySnapshot =
-              await allAdsQuery.get();
-          Query<Map<String, dynamic>> categoryAdsQuery = firestore
-              .collection('Category')
-              .doc(item.categoryName)
-              .collection('Subcategories')
-              .doc(item.subCategoryName)
-              .collection('Ads')
-              .where('adReference', isEqualTo: docRef);
-          QuerySnapshot<Map<String, dynamic>> categoryQuerySnapshot =
-              await categoryAdsQuery.get();
-          firestore
-              .collection('users')
-              .doc(handler.newUser.user!.uid)
-              .collection('MySoldAds')
-              .doc()
-              .set(item.toJson());
-          await querySnapshot.docs.first.reference.delete();
-          await categoryQuerySnapshot.docs.first.reference.delete();
-          await snapshot.reference.delete();
-        });
-        ref.read(showActiveAdsProvider.notifier).deleteItem(item);
-        ref.read(homeAdsprovider.notifier).deleteItem(item);
-        //ref.read(showCatAdsProvider.notifier).deleteItem(item);
-        Navigator.of(sellContext).pop();
-        print('done executing');
-      } catch (e) {
-        if (sellContext.mounted) {
-          Navigator.of(sellContext).pop();
-        }
-        showCupertinoDialog(
-            context: context,
-            builder: (ctx) {
-              return CupertinoAlertDialog(
-                title: Text(
-                  'Alert',
-                  style: GoogleFonts.roboto(),
-                ),
-                content: Text(
-                  e.toString(),
-                  style: GoogleFonts.roboto(),
-                ),
-                actions: [
-                  CupertinoDialogAction(
+      final hasInternet = await InternetConnectionChecker().hasConnection;
+      if (context.mounted) {
+        if (!hasInternet) {
+          showCupertinoDialog(
+              context: context,
+              builder: (ctx) {
+                return CupertinoAlertDialog(
+                  title: const Text('No Internet Connection'),
+                  content: const Text(
+                      'Please check your internet connection and try again.'),
+                  actions: [
+                    CupertinoDialogAction(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Navigator.of(ctx).pop();
                       },
-                      child: Text(
-                        'Okay',
-                        style: GoogleFonts.roboto(),
-                      ))
-                ],
-              );
-            });
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              });
+          return;
+        }
+        try {
+          showCupertinoDialog(
+              context: context,
+              builder: (ctx) {
+                sellContext = ctx;
+                return Center(
+                  child: CupertinoActivityIndicator(
+                    radius: 15,
+                    color: CupertinoColors.activeBlue,
+                  ),
+                );
+              });
+          await firestore.runTransaction((transaction) async {
+            DocumentSnapshot<Map<String, dynamic>> snapshot = await firestore
+                .collection('users')
+                .doc(handler.newUser.user!.uid)
+                .collection('MyActiveAds')
+                .doc(item.id)
+                .get();
+            DocumentReference<Map<String, dynamic>> docRef = snapshot.reference;
+            Query<Map<String, dynamic>> allAdsQuery = firestore
+                .collection('AllAds')
+                .where('adReference', isEqualTo: docRef);
+            QuerySnapshot<Map<String, dynamic>> querySnapshot =
+                await allAdsQuery.get();
+            Query<Map<String, dynamic>> categoryAdsQuery = firestore
+                .collection('Category')
+                .doc(item.categoryName)
+                .collection('Subcategories')
+                .doc(item.subCategoryName)
+                .collection('Ads')
+                .where('adReference', isEqualTo: docRef);
+            QuerySnapshot<Map<String, dynamic>> categoryQuerySnapshot =
+                await categoryAdsQuery.get();
+            firestore
+                .collection('users')
+                .doc(handler.newUser.user!.uid)
+                .collection('MySoldAds')
+                .doc()
+                .set(item.toJson());
+            await querySnapshot.docs.first.reference.delete();
+            await categoryQuerySnapshot.docs.first.reference.delete();
+            await snapshot.reference.delete();
+          });
+          ref.read(showActiveAdsProvider.notifier).deleteItem(item);
+          ref.read(homeAdsprovider.notifier).deleteItem(item);
+          //ref.read(showCatAdsProvider.notifier).deleteItem(item);
+          Navigator.of(sellContext).pop();
+          print('done executing');
+        } catch (e) {
+          if (sellContext.mounted) {
+            Navigator.of(sellContext).pop();
+          }
+          showCupertinoDialog(
+              context: context,
+              builder: (ctx) {
+                return CupertinoAlertDialog(
+                  title: Text(
+                    'Alert',
+                    style: GoogleFonts.roboto(),
+                  ),
+                  content: Text(
+                    e.toString(),
+                    style: GoogleFonts.roboto(),
+                  ),
+                  actions: [
+                    CupertinoDialogAction(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Okay',
+                          style: GoogleFonts.roboto(),
+                        ))
+                  ],
+                );
+              });
+        }
+      } else {
+        Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+            CupertinoPageRoute(builder: (ctx) => const LoginIos()),
+            (Route<dynamic> route) => false);
       }
-    } else {
-      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-          CupertinoPageRoute(builder: (ctx) => const LoginIos()),
-          (Route<dynamic> route) => false);
     }
   }
 
@@ -168,9 +192,10 @@ class _MyAdsState extends ConsumerState<MyAds> {
                         style: GoogleFonts.roboto(),
                       ),
                       onPressed: () async {
-                        print('retry in connectivity');
-                        ref.refresh(connectivityProvider);
-                        ref.refresh(internetCheckerProvider);
+                        final x = ref.refresh(connectivityProvider);
+                        final y = ref.refresh(internetCheckerProvider);
+                        debugPrint(x.toString());
+                        debugPrint(y.toString());
                         await ref
                             .read(showActiveAdsProvider.notifier)
                             .refreshItems();
@@ -202,8 +227,10 @@ class _MyAdsState extends ConsumerState<MyAds> {
                             ),
                             onPressed: () {
                               print('retry in internet checker');
-                              final _ = ref.refresh(connectivityProvider);
-                              final s = ref.refresh(internetCheckerProvider);
+                              final x = ref.refresh(connectivityProvider);
+                              final y = ref.refresh(internetCheckerProvider);
+                              debugPrint(x.toString());
+                              debugPrint(y.toString());
                               ref
                                   .read(showActiveAdsProvider.notifier)
                                   .refreshItems();

@@ -80,9 +80,10 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                         style: GoogleFonts.roboto(),
                       ),
                       onPressed: () async {
-                        print('retry in connectivity');
-                        ref.refresh(connectivityProvider);
-                        ref.refresh(internetCheckerProvider);
+                        final x = ref.refresh(connectivityProvider);
+                        final y = ref.refresh(internetCheckerProvider);
+                        debugPrint(x.toString());
+                        debugPrint(y.toString());
                         await ref
                             .read(showCatAdsProvider.notifier)
                             .refreshItems(
@@ -114,9 +115,11 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                               style: GoogleFonts.roboto(),
                             ),
                             onPressed: () async {
-                              print('retry in connectivity');
-                              ref.refresh(connectivityProvider);
-                              ref.refresh(internetCheckerProvider);
+                              
+                             final x =  ref.refresh(connectivityProvider);
+                             final y = ref.refresh(internetCheckerProvider);
+                             debugPrint(x.toString());
+                             debugPrint(y.toString());
                               await ref
                                   .read(showCatAdsProvider.notifier)
                                   .refreshItems(widget.categoryName,

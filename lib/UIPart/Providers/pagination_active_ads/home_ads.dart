@@ -42,10 +42,9 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
             .limit(_itemsPerPageHome);
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
-        
+
         List<Item> items = [];
         for (final doc in querySnapshot.docs) {
-          
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
           DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
           Timestamp timeStamp = doc.data()['createdAt'];
@@ -85,7 +84,7 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
     }).toList()));
   }
 
-  void resetState(){
+  void resetState() {
     _hasMoreHome = true;
     _isLoadingHome = false;
     _lastHomeDocument = null;
@@ -139,8 +138,7 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
 }
 
 final homeAdsprovider =
-    StateNotifierProvider.autoDispose<ShowHomeAds, AsyncValue<HomeAdState>>(
-        (ref) {
+    StateNotifierProvider<ShowHomeAds, AsyncValue<HomeAdState>>((ref) {
   return ShowHomeAds();
 });
 
