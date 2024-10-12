@@ -11,8 +11,11 @@ import 'package:google_fonts/google_fonts.dart';
 class DisplayCategoryAds extends ConsumerStatefulWidget {
   final String categoryName;
   final String subCategoryName;
-  const DisplayCategoryAds(
-      {required this.categoryName, required this.subCategoryName, super.key});
+  const DisplayCategoryAds({
+    required this.categoryName,
+    required this.subCategoryName,
+    super.key,
+  });
 
   @override
   ConsumerState<DisplayCategoryAds> createState() => _DisplayCategoryAdsState();
@@ -363,112 +366,3 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
     );
   }
 }
-
-// class CategoryItemsList extends StatelessWidget {
-//   final AuthHandler handler;
-//   final String category;
-//   final String subCategory;
-//   const CategoryItemsList(
-//       {required this.handler,
-//       required this.category,
-//       required this.subCategory,
-//       super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Consumer(
-//       builder: (ctx, ref, child) {
-//     //    final state = ref.watch(showCategoryAdsProvider);
-//         print(state.toString());
-//         return state.when(data: (items) {
-//           return items.isEmpty
-//               ? SliverToBoxAdapter(
-//                   child: Text('No Ads'),
-//                 )
-//               : CategoryItemsListBuilder(
-//                   handler: handler,
-//                   items: items,
-//                 );
-//         }, loading: () {
-//           print('Always loading');
-//           return SliverFillRemaining(
-//             child: Center(
-//               child: Column(
-//                 mainAxisSize: MainAxisSize.min,
-//                 children: [
-//                   CupertinoActivityIndicator(
-//                     radius: 15,
-//                   ),
-//                   const SizedBox(
-//                     height: 20,
-//                   ),
-//                   Text(
-//                     "Loading...",
-//                     style: GoogleFonts.poppins(
-//                       fontSize: 15,
-//                       fontWeight: FontWeight.w500,
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           );
-//         }, error: (e, stk) {
-//           return SliverToBoxAdapter(
-//               child: Center(
-//             child: Text('Something Went Wrong'),
-//           ));
-//         }, onGoingLoading: (items) {
-//           return CategoryItemsListBuilder(items: items, handler: handler);
-//         }, onGoingError: (items, e, stk) {
-//           return CategoryItemsListBuilder(
-//             items: items,
-//             handler: handler,
-//           );
-//         });
-//       },
-//     );
-//   }
-// }
-
-// class CategoryItemsListBuilder extends StatelessWidget {
-//   final List<Item> items;
-//   final AuthHandler handler;
-//   const CategoryItemsListBuilder(
-//       {required this.items, required this.handler, super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     
-//   }
-// }
-
-// class OnGoingBottomWidgetCategory extends StatelessWidget {
-//   final String category;
-//   final String subCategory;
-//   const OnGoingBottomWidgetCategory(
-//       {required this.category, required this.subCategory, super.key});
-//   @override
-//   Widget build(BuildContext context) {
-//     return SliverToBoxAdapter(
-//       child: Consumer(
-//         builder: (context, ref, child) {
-//           final state = ref.watch(showCategoryAdsProvider);
-//           return state.maybeWhen(
-//             orElse: () => const SizedBox.shrink(),
-//             onGoingLoading: (items) {
-//               return const Center(
-//                 child: CupertinoActivityIndicator(),
-//               );
-//             },
-//             onGoingError: (items, e, stk) {
-//               return const Center(
-//                 child: Text('Something Went Wrong'),
-//               );
-//             },
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
