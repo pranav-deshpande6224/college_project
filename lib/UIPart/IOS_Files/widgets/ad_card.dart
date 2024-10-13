@@ -6,7 +6,7 @@ import 'package:college_project/UIPart/Providers/pagination_active_ads/show_sold
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class AdCard extends ConsumerWidget {
   final int cardIndex;
@@ -25,7 +25,7 @@ class AdCard extends ConsumerWidget {
     AuthHandler handler = AuthHandler.authHandlerInstance;
     final fireStore = handler.fireStore;
     late BuildContext anotherContext;
-    final hasInternet = await InternetConnectionChecker().hasConnection;
+    final hasInternet = await InternetConnection().hasInternetAccess;
     if (!hasInternet) {
       showCupertinoDialog(
           context: context,

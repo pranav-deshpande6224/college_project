@@ -10,13 +10,15 @@ import 'package:college_project/UIPart/Providers/image_selected.dart';
 import 'package:college_project/UIPart/Providers/select_image.dart';
 import 'package:college_project/UIPart/Providers/selected_item.dart';
 import 'package:college_project/constants/constants.dart';
+// import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+// import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as path;
@@ -129,6 +131,29 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     }
   }
 
+  void noInternetDialog() {
+    showCupertinoDialog(
+        context: context,
+        builder: (ctx) {
+          return CupertinoAlertDialog(
+            title: const Text('No Internet Connection'),
+            content: const Text(
+                'Please check your internet connection and try again'),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(
+                  'Okay',
+                  style: GoogleFonts.roboto(),
+                ),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+              )
+            ],
+          );
+        });
+  }
+
   void saveMyAdToDB(String categoryForPostingData) async {
     List<String> url = [];
     final fbStorage = handler.storage;
@@ -141,34 +166,15 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           (Route<dynamic> route) => false);
       return;
     }
-    final internetCheck = await InternetConnectionChecker().hasConnection;
+    // final internetCheck = await InternetConnection().hasInternetAccess;
     if (context.mounted) {
-      if (!internetCheck) {
-        showCupertinoDialog(
-            context: context,
-            builder: (ctx) {
-              return CupertinoAlertDialog(
-                title: const Text('No Internet Connection'),
-                content: const Text(
-                    'Please check your internet connection and try again'),
-                actions: [
-                  CupertinoDialogAction(
-                    child: Text(
-                      'Okay',
-                      style: GoogleFonts.roboto(),
-                    ),
-                    onPressed: () {
-                      Navigator.of(ctx).pop();
-                    },
-                  )
-                ],
-              );
-            });
-        return;
-      }
+      // if (!internetCheck) {
+      //   noInternetDialog();
+      //   return;
+      // }
       late BuildContext popContext;
       try {
-        fbCloudFireStore.runTransaction((_) async {
+        await fbCloudFireStore.runTransaction((_) async {
           showCupertinoDialog(
               context: context,
               builder: (ctx) {

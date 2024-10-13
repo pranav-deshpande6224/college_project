@@ -11,7 +11,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+// import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class MyAds extends ConsumerStatefulWidget {
   const MyAds({super.key});
@@ -49,7 +50,7 @@ class _MyAdsState extends ConsumerState<MyAds> {
     if (handler.newUser.user != null) {
       final firestore = handler.fireStore;
       late BuildContext sellContext;
-      final hasInternet = await InternetConnectionChecker().hasConnection;
+      final hasInternet = await InternetConnection().hasInternetAccess;
       if (context.mounted) {
         if (!hasInternet) {
           showCupertinoDialog(
