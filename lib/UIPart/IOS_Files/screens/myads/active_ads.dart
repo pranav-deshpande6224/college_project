@@ -79,7 +79,7 @@ class _MyAdsState extends ConsumerState<MyAds> {
                   return Center(
                     child: CupertinoActivityIndicator(
                       radius: 15,
-                      color: CupertinoColors.activeBlue,
+                      color: CupertinoColors.black,
                     ),
                   );
                 });

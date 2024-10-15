@@ -182,9 +182,7 @@ class AdCard extends ConsumerWidget {
                                   CupertinoDialogAction(
                                     child: Text(
                                       'No',
-                                      style: GoogleFonts.roboto(
-                                        color: CupertinoColors.destructiveRed,
-                                      ),
+                                      style: GoogleFonts.roboto(),
                                     ),
                                     onPressed: () {
                                       Navigator.of(ctx).pop();
@@ -192,7 +190,9 @@ class AdCard extends ConsumerWidget {
                                   ),
                                   CupertinoDialogAction(
                                     child: Text('Yes',
-                                        style: GoogleFonts.roboto()),
+                                        style: GoogleFonts.roboto(
+                                          color: CupertinoColors.destructiveRed,
+                                        )),
                                     onPressed: () {
                                       Navigator.of(ctx).pop();
                                       adSold!(ad);
@@ -221,7 +221,7 @@ class AdCard extends ConsumerWidget {
                               width: 8,
                             ),
                             Text(
-                              'Mark as Sold',
+                              'Mark this Product as Sold',
                               style: GoogleFonts.roboto(
                                 fontWeight: FontWeight.w500,
                               ),
@@ -232,55 +232,53 @@ class AdCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context, rootNavigator: true).push(
-                        CupertinoPageRoute(
-                          builder: (ctx) => ProductGetInfo(
-                            categoryName: ad.categoryName,
-                            subCategoryName: ad.subCategoryName,
-                            ad: ad,
-                            isEditAd: true,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          width: 2,
-                          color: CupertinoColors.black,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              CupertinoIcons.pencil,
-                              color: CupertinoColors.black,
-                              size: 25,
-                            ),
-                            const SizedBox(
-                              width: 8,
-                            ),
-                            Text(
-                              'Edit Product',
-                              style: GoogleFonts.roboto(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                )
+
+                // Expanded(
+                //   child: GestureDetector(
+                //     onTap: () {
+                //       Navigator.of(context, rootNavigator: true).push(
+                //         CupertinoPageRoute(
+                //           builder: (ctx) => ProductGetInfo(
+                //             categoryName: ad.categoryName,
+                //             subCategoryName: ad.subCategoryName,
+                //             ad: ad,
+                //             isEditAd: true,
+                //           ),
+                //         ),
+                //       );
+                //     },
+                //     child: Container(
+                //       decoration: BoxDecoration(
+                //         border: Border.all(
+                //           width: 2,
+                //           color: CupertinoColors.black,
+                //         ),
+                //         borderRadius: BorderRadius.circular(8),
+                //       ),
+                //       child: Center(
+                //         child: Row(
+                //           mainAxisAlignment: MainAxisAlignment.center,
+                //           children: [
+                //             const Icon(
+                //               CupertinoIcons.pencil,
+                //               color: CupertinoColors.black,
+                //               size: 25,
+                //             ),
+                //             const SizedBox(
+                //               width: 8,
+                //             ),
+                //             Text(
+                //               'Edit Product',
+                //               style: GoogleFonts.roboto(
+                //                 fontWeight: FontWeight.w500,
+                //               ),
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                // )
               ],
             ),
           ),
@@ -308,21 +306,25 @@ class AdCard extends ConsumerWidget {
                     children: [
                       Expanded(
                         flex: 3,
-                        child: CachedNetworkImage(
-                          imageUrl: ad.images[0],
-                          placeholder: (context, url) {
-                            return ClipRRect(
-                              child: Image.asset(
-                                'assets/images/placeholder.jpg',
-                              ),
-                            );
-                          },
-                          errorWidget: (context, url, error) {
-                            return const Center(
-                              child:
-                                  Icon(CupertinoIcons.exclamationmark_circle),
-                            );
-                          },
+                        child: SizedBox(
+                          height: 150,
+                          width: 150,
+                          child: CachedNetworkImage(
+                            imageUrl: ad.images[0],
+                            placeholder: (context, url) {
+                              return ClipRRect(
+                                child: Image.asset(
+                                  'assets/images/placeholder.jpg',
+                                ),
+                              );
+                            },
+                            errorWidget: (context, url, error) {
+                              return const Center(
+                                child:
+                                    Icon(CupertinoIcons.exclamationmark_circle),
+                              );
+                            },
+                          ),
                         ),
                       ),
                       Expanded(
