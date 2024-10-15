@@ -70,85 +70,86 @@ class _MyAdsState extends ConsumerState<MyAds> {
                   ],
                 );
               });
-          return;
-        }
-        try {
-          showCupertinoDialog(
-              context: context,
-              builder: (ctx) {
-                sellContext = ctx;
-                return Center(
-                  child: CupertinoActivityIndicator(
-                    radius: 15,
-                    color: CupertinoColors.activeBlue,
-                  ),
-                );
-              });
-          await firestore.runTransaction((transaction) async {
-            DocumentSnapshot<Map<String, dynamic>> snapshot = await firestore
-                .collection('users')
-                .doc(handler.newUser.user!.uid)
-                .collection('MyActiveAds')
-                .doc(item.id)
-                .get();
-            DocumentReference<Map<String, dynamic>> docRef = snapshot.reference;
-            Query<Map<String, dynamic>> allAdsQuery = firestore
-                .collection('AllAds')
-                .where('adReference', isEqualTo: docRef);
-            QuerySnapshot<Map<String, dynamic>> querySnapshot =
-                await allAdsQuery.get();
-            Query<Map<String, dynamic>> categoryAdsQuery = firestore
-                .collection('Category')
-                .doc(item.categoryName)
-                .collection('Subcategories')
-                .doc(item.subCategoryName)
-                .collection('Ads')
-                .where('adReference', isEqualTo: docRef);
-            QuerySnapshot<Map<String, dynamic>> categoryQuerySnapshot =
-                await categoryAdsQuery.get();
-            firestore
-                .collection('users')
-                .doc(handler.newUser.user!.uid)
-                .collection('MySoldAds')
-                .doc()
-                .set(item.toJson());
-            await querySnapshot.docs.first.reference.delete();
-            await categoryQuerySnapshot.docs.first.reference.delete();
-            await snapshot.reference.delete();
-          });
-          ref.read(showActiveAdsProvider.notifier).deleteItem(item);
-          ref.read(homeAdsprovider.notifier).deleteItem(item);
-          //ref.read(showCatAdsProvider.notifier).deleteItem(item);
-          Navigator.of(sellContext).pop();
-          print('done executing');
-        } catch (e) {
-          if (sellContext.mounted) {
+        } else {
+          try {
+            showCupertinoDialog(
+                context: context,
+                builder: (ctx) {
+                  sellContext = ctx;
+                  return Center(
+                    child: CupertinoActivityIndicator(
+                      radius: 15,
+                      color: CupertinoColors.activeBlue,
+                    ),
+                  );
+                });
+            await firestore.runTransaction((transaction) async {
+              DocumentSnapshot<Map<String, dynamic>> snapshot = await firestore
+                  .collection('users')
+                  .doc(handler.newUser.user!.uid)
+                  .collection('MyActiveAds')
+                  .doc(item.id)
+                  .get();
+              DocumentReference<Map<String, dynamic>> docRef =
+                  snapshot.reference;
+              Query<Map<String, dynamic>> allAdsQuery = firestore
+                  .collection('AllAds')
+                  .where('adReference', isEqualTo: docRef);
+              QuerySnapshot<Map<String, dynamic>> querySnapshot =
+                  await allAdsQuery.get();
+              Query<Map<String, dynamic>> categoryAdsQuery = firestore
+                  .collection('Category')
+                  .doc(item.categoryName)
+                  .collection('Subcategories')
+                  .doc(item.subCategoryName)
+                  .collection('Ads')
+                  .where('adReference', isEqualTo: docRef);
+              QuerySnapshot<Map<String, dynamic>> categoryQuerySnapshot =
+                  await categoryAdsQuery.get();
+              firestore
+                  .collection('users')
+                  .doc(handler.newUser.user!.uid)
+                  .collection('MySoldAds')
+                  .doc()
+                  .set(item.toJson());
+              await querySnapshot.docs.first.reference.delete();
+              await categoryQuerySnapshot.docs.first.reference.delete();
+              await snapshot.reference.delete();
+            });
+            ref.read(showActiveAdsProvider.notifier).deleteItem(item);
+            ref.read(homeAdsprovider.notifier).deleteItem(item);
+            //ref.read(showCatAdsProvider.notifier).deleteItem(item);
             Navigator.of(sellContext).pop();
+            print('done executing');
+          } catch (e) {
+            if (sellContext.mounted) {
+              Navigator.of(sellContext).pop();
+            }
+            showCupertinoDialog(
+                context: context,
+                builder: (ctx) {
+                  return CupertinoAlertDialog(
+                    title: Text(
+                      'Alert',
+                      style: GoogleFonts.roboto(),
+                    ),
+                    content: Text(
+                      e.toString(),
+                      style: GoogleFonts.roboto(),
+                    ),
+                    actions: [
+                      CupertinoDialogAction(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Okay',
+                            style: GoogleFonts.roboto(),
+                          ))
+                    ],
+                  );
+                });
           }
-          showCupertinoDialog(
-              context: context,
-              builder: (ctx) {
-                return CupertinoAlertDialog(
-                  title: Text(
-                    'Alert',
-                    style: GoogleFonts.roboto(),
-                  ),
-                  content: Text(
-                    e.toString(),
-                    style: GoogleFonts.roboto(),
-                  ),
-                  actions: [
-                    CupertinoDialogAction(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Okay',
-                          style: GoogleFonts.roboto(),
-                        ))
-                  ],
-                );
-              });
         }
       } else {
         Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
@@ -171,208 +172,211 @@ class _MyAdsState extends ConsumerState<MyAds> {
         ),
       ),
       child: SafeArea(
-          child: connectivityState.when(
-        data: (connectivityResult) {
-          if (connectivityResult == ConnectivityResult.none) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    CupertinoIcons.wifi_slash,
-                    color: CupertinoColors.activeBlue,
-                    size: 40,
-                  ),
-                  Text(
-                    'No Internet Connection',
-                    style: GoogleFonts.roboto(),
-                  ),
-                  CupertinoButton(
-                      child: Text(
-                        'Retry',
-                        style: GoogleFonts.roboto(),
-                      ),
-                      onPressed: () async {
-                        final x = ref.refresh(connectivityProvider);
-                        final y = ref.refresh(internetCheckerProvider);
-                        debugPrint(x.toString());
-                        debugPrint(y.toString());
-                        await ref
-                            .read(showActiveAdsProvider.notifier)
-                            .refreshItems();
-                      })
-                ],
-              ),
-            );
-          } else {
-            return internetState.when(
-              data: (hasInternet) {
-                if (!hasInternet) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          CupertinoIcons.wifi_slash,
-                          color: CupertinoColors.activeBlue,
-                          size: 40,
-                        ),
-                        Text(
-                          'No Internet Connection',
+        child: connectivityState.when(
+          data: (connectivityResult) {
+            if (connectivityResult == ConnectivityResult.none) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      CupertinoIcons.wifi_slash,
+                      color: CupertinoColors.activeBlue,
+                      size: 40,
+                    ),
+                    Text(
+                      'No Internet Connection',
+                      style: GoogleFonts.roboto(),
+                    ),
+                    CupertinoButton(
+                        child: Text(
+                          'Retry',
                           style: GoogleFonts.roboto(),
                         ),
-                        CupertinoButton(
-                            child: Text(
-                              'Retry',
-                              style: GoogleFonts.roboto(),
-                            ),
-                            onPressed: () {
-                              print('retry in internet checker');
-                              final x = ref.refresh(connectivityProvider);
-                              final y = ref.refresh(internetCheckerProvider);
-                              debugPrint(x.toString());
-                              debugPrint(y.toString());
-                              ref
-                                  .read(showActiveAdsProvider.notifier)
-                                  .refreshItems();
-                            })
-                      ],
-                    ),
-                  );
-                } else {
-                  final itemState = ref.watch(showActiveAdsProvider);
-                  return itemState.when(
-                    data: (adState) {
-                      if (adState.items.isEmpty) {
-                        return CustomScrollView(
-                          physics: AlwaysScrollableScrollPhysics(),
-                          controller: activeAdScrollController,
-                          slivers: [
-                            CupertinoSliverRefreshControl(
-                              onRefresh: () async {
-                                await ref
-                                    .read(showActiveAdsProvider.notifier)
-                                    .refreshItems();
-                              },
-                            ),
-                            SliverFillRemaining(
-                              child: Center(
-                                  child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Image.asset(
-                                    'assets/images/emoji.png',
-                                    height: 100,
-                                    width: 100,
-                                  ),
-                                  Text(
-                                    'No Active Ads',
-                                    style: GoogleFonts.roboto(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              )),
-                            ),
-                          ],
-                        );
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: CustomScrollView(
-                          physics: AlwaysScrollableScrollPhysics(),
-                          controller: activeAdScrollController,
-                          slivers: [
-                            CupertinoSliverRefreshControl(
-                              onRefresh: () async {
-                                await ref
-                                    .read(showActiveAdsProvider.notifier)
-                                    .refreshItems();
-                              },
-                            ),
-                            SliverList(
-                              delegate: SliverChildBuilderDelegate(
-                                (ctx, index) {
-                                  final item = adState.items[index];
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context, rootNavigator: true)
-                                          .push(
-                                        CupertinoPageRoute(
-                                          builder: (ctx) => ProductDetailScreen(
-                                            item: item,
-                                            yourAd: true,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: AdCard(
-                                      cardIndex: index,
-                                      ad: item,
-                                      adSold: sellTheItem,
-                                      isSold: false,
-                                    ),
-                                  );
-                                },
-                                childCount: adState.items.length,
+                        onPressed: () async {
+                          final x = ref.refresh(connectivityProvider);
+                          final y = ref.refresh(internetCheckerProvider);
+                          debugPrint(x.toString());
+                          debugPrint(y.toString());
+                          await ref
+                              .read(showActiveAdsProvider.notifier)
+                              .refreshItems();
+                        })
+                  ],
+                ),
+              );
+            } else {
+              return internetState.when(
+                data: (hasInternet) {
+                  if (!hasInternet) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            CupertinoIcons.wifi_slash,
+                            color: CupertinoColors.activeBlue,
+                            size: 40,
+                          ),
+                          Text(
+                            'No Internet Connection',
+                            style: GoogleFonts.roboto(),
+                          ),
+                          CupertinoButton(
+                              child: Text(
+                                'Retry',
+                                style: GoogleFonts.roboto(),
                               ),
-                            ),
-                            if (adState.isLoadingMore)
-                              SliverToBoxAdapter(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Center(
+                              onPressed: () {
+                                print('retry in internet checker');
+                                final x = ref.refresh(connectivityProvider);
+                                final y = ref.refresh(internetCheckerProvider);
+                                debugPrint(x.toString());
+                                debugPrint(y.toString());
+                                ref
+                                    .read(showActiveAdsProvider.notifier)
+                                    .refreshItems();
+                              })
+                        ],
+                      ),
+                    );
+                  } else {
+                    final itemState = ref.watch(showActiveAdsProvider);
+                    return itemState.when(
+                      data: (adState) {
+                        if (adState.items.isEmpty) {
+                          return CustomScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            controller: activeAdScrollController,
+                            slivers: [
+                              CupertinoSliverRefreshControl(
+                                onRefresh: () async {
+                                  await ref
+                                      .read(showActiveAdsProvider.notifier)
+                                      .refreshItems();
+                                },
+                              ),
+                              SliverFillRemaining(
+                                child: Center(
                                     child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CupertinoActivityIndicator(
-                                          radius: 15,
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Text(
-                                          'Fetching Content...',
-                                          style: TextStyle(),
-                                        )
-                                      ],
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Image.asset(
+                                      'assets/images/emoji.png',
+                                      height: 100,
+                                      width: 100,
+                                    ),
+                                    Text(
+                                      'No Active Ads',
+                                      style: GoogleFonts.roboto(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                )),
+                              ),
+                            ],
+                          );
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: CustomScrollView(
+                            physics: AlwaysScrollableScrollPhysics(),
+                            controller: activeAdScrollController,
+                            slivers: [
+                              CupertinoSliverRefreshControl(
+                                onRefresh: () async {
+                                  await ref
+                                      .read(showActiveAdsProvider.notifier)
+                                      .refreshItems();
+                                },
+                              ),
+                              SliverList(
+                                delegate: SliverChildBuilderDelegate(
+                                  (ctx, index) {
+                                    final item = adState.items[index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .push(
+                                          CupertinoPageRoute(
+                                            builder: (ctx) =>
+                                                ProductDetailScreen(
+                                              item: item,
+                                              yourAd: true,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: AdCard(
+                                        cardIndex: index,
+                                        ad: item,
+                                        adSold: sellTheItem,
+                                        isSold: false,
+                                      ),
+                                    );
+                                  },
+                                  childCount: adState.items.length,
+                                ),
+                              ),
+                              if (adState.isLoadingMore)
+                                SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          CupertinoActivityIndicator(
+                                            radius: 15,
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Text(
+                                            'Fetching Content...',
+                                            style: TextStyle(),
+                                          )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
+                            ],
+                          ),
+                        );
+                      },
+                      error: (error, stack) =>
+                          Center(child: Text('Error: $error')),
+                      loading: () {
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CupertinoActivityIndicator(
+                                radius: 15,
                               ),
-                          ],
-                        ),
-                      );
-                    },
-                    error: (error, stack) =>
-                        Center(child: Text('Error: $error')),
-                    loading: () {
-                      return Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CupertinoActivityIndicator(
-                              radius: 15,
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            ),
-                            const Text('Loading...')
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
-              },
-              error: (error, _) => Center(child: Text('Error: $error')),
-              loading: () => Center(child: CupertinoActivityIndicator()),
-            );
-          }
-        },
-        error: (error, _) => Center(child: Text('Error: $error')),
-        loading: () => Center(child: CupertinoActivityIndicator()),
-      )),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              const Text('Loading...')
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+                error: (error, _) => Center(child: Text('Error: $error')),
+                loading: () => Center(child: CupertinoActivityIndicator()),
+              );
+            }
+          },
+          error: (error, _) => Center(child: Text('Error: $error')),
+          loading: () => Center(child: CupertinoActivityIndicator()),
+        ),
+      ),
     );
   }
 }

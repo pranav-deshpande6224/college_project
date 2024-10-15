@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/home/image_detail_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -103,15 +105,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: CarouselSlider(
-                          items: widget.item.images.map((e) {
-                            return Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Stack(
-                                children: [
-                                  Container(
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            CupertinoPageRoute(
+                              fullscreenDialog: true,
+                              builder: (ctx) => ImageDetailScreen(
+                                imageUrl: widget.item.images,
+                              ),
+                            ),
+                          );
+                        },
+                        child: AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: CarouselSlider(
+                            items: widget.item.images.map(
+                              (e) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Container(
                                     decoration: BoxDecoration(
                                       color: CupertinoColors.systemBackground,
                                       borderRadius: BorderRadius.circular(10),
@@ -119,38 +131,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                         color: CupertinoColors.systemGrey,
                                       ),
                                     ),
-                                    child: const Center(
-                                      child: Icon(
-                                        CupertinoIcons.photo,
-                                        size: 30,
-                                        color: CupertinoColors.black,
-                                      ),
+                                    child: CachedNetworkImage(
+                                      imageUrl: e,
+                                      placeholder: (context, url) {
+                                        return const Center(
+                                          child: Icon(
+                                            CupertinoIcons.photo,
+                                            size: 30,
+                                            color: CupertinoColors.black,
+                                          ),
+                                        );
+                                      },
+                                      errorWidget: (context, url, error) {
+                                        return const Center(
+                                          child: Icon(
+                                            CupertinoIcons.photo,
+                                            size: 30,
+                                            color: CupertinoColors.black,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
-                                  Positioned(
-                                    top: 0,
-                                    right: 0,
-                                    left: 0,
-                                    bottom: 0,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 8, bottom: 8),
-                                        child: Image.network(
-                                          e,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                          options: CarouselOptions(
-                            disableCenter: true,
-                            autoPlay: true,
-                            enableInfiniteScroll: false,
+                                );
+                              },
+                            ).toList(),
+                            options: CarouselOptions(
+                              disableCenter: true,
+                              autoPlay: true,
+                              enableInfiniteScroll: false,
+                            ),
                           ),
                         ),
                       ),

@@ -2,9 +2,9 @@ import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.d
 import 'package:college_project/Authentication/Providers/error.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class ForgetPassword extends ConsumerStatefulWidget {
   const ForgetPassword({super.key});
@@ -31,20 +31,52 @@ class _ForgetPasswordState extends ConsumerState<ForgetPassword> {
     }
     final emailError = ref.read(emailErrorProvider);
     if (emailError.isEmpty) {
-      late BuildContext forgetPasswordContext;
-      showCupertinoDialog(
-        context: context,
-        builder: (ctx) {
-          forgetPasswordContext = ctx;
-          handler.forgetPassword(
-              _emailController.text.trim(), context, forgetPasswordContext);
-          return const Center(
-            child: CupertinoActivityIndicator(
-              radius: 15,
-            ),
+      final internetChecker = await InternetConnection().hasInternetAccess;
+      if (internetChecker) {
+        late BuildContext forgetPasswordContext;
+        showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            forgetPasswordContext = ctx;
+            handler.forgetPassword(
+                _emailController.text.trim(), context, forgetPasswordContext);
+            return const Center(
+              child: CupertinoActivityIndicator(
+                radius: 15,
+              ),
+            );
+          },
+        );
+      } else {
+        if (context.mounted) {
+          showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              return CupertinoAlertDialog(
+                title: Text(
+                  'No Internet',
+                  style: GoogleFonts.roboto(),
+                ),
+                content: Text(
+                  'Please check your internet connection',
+                  style: GoogleFonts.roboto(),
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                    child: Text(
+                      'Okay',
+                      style: GoogleFonts.roboto(),
+                    ),
+                  )
+                ],
+              );
+            },
           );
-        },
-      );
+        }
+      }
     }
   }
 
@@ -72,8 +104,11 @@ class _ForgetPasswordState extends ConsumerState<ForgetPassword> {
                     ref.read(emailErrorProvider.notifier).updateError('');
                     Navigator.of(context).pop();
                   },
-                  child: const CircleAvatar(
-                    backgroundColor: Constants.white,
+                  child: Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                        color: Constants.white, shape: BoxShape.circle),
                     child: Icon(
                       CupertinoIcons.back,
                       size: 30,

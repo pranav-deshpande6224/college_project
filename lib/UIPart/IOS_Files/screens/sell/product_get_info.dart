@@ -10,18 +10,13 @@ import 'package:college_project/UIPart/Providers/image_selected.dart';
 import 'package:college_project/UIPart/Providers/select_image.dart';
 import 'package:college_project/UIPart/Providers/selected_item.dart';
 import 'package:college_project/constants/constants.dart';
-// import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:path/path.dart' as path;
 
 class ProductGetInfo extends ConsumerStatefulWidget {
   final String categoryName;
@@ -166,47 +161,35 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
           (Route<dynamic> route) => false);
       return;
     }
-    // final internetCheck = await InternetConnection().hasInternetAccess;
+    final internetCheck = await InternetConnection().hasInternetAccess;
     if (context.mounted) {
-      // if (!internetCheck) {
-      //   noInternetDialog();
-      //   return;
-      // }
-      late BuildContext popContext;
-      try {
-        await fbCloudFireStore.runTransaction((_) async {
-          showCupertinoDialog(
-              context: context,
-              builder: (ctx) {
-                popContext = ctx;
-                return const Center(
-                  child: CupertinoActivityIndicator(
-                    radius: 15,
-                    color: CupertinoColors.activeBlue,
-                  ),
-                );
-              });
-          for (int i = 0; i < ref.read(imageProvider).length; i++) {
-            final dir = await getTemporaryDirectory();
-            final targetPath =
-                "${dir.absolute.path}/${path.basename(ref.read(imageProvider)[i].path)}";
-            var compressedImage = await FlutterImageCompress.compressAndGetFile(
-              ref.read(imageProvider)[i].path,
-              targetPath,
-              quality: 90, // Adjust quality as needed
-              minWidth: 800,
-              minHeight: 600,
-            );
-            if (compressedImage != null) {
-              String fileName = path.basename(compressedImage.path);
-              String uniqueName =
-                  '${handler.newUser.user!.uid}/$uuid/${fileName}_$i.jpg';
-              UploadTask task =
-                  fbStorage.ref(uniqueName).putFile(File(compressedImage.path));
+      if (internetCheck) {
+        print("having the internet connection $internetCheck");
+        late BuildContext popContext;
+        try {
+          print("before the transaction");
+          await fbCloudFireStore.runTransaction((_) async {
+            showCupertinoDialog(
+                context: context,
+                builder: (ctx) {
+                  popContext = ctx;
+                  return const Center(
+                    child: CupertinoActivityIndicator(
+                      radius: 15,
+                      color: CupertinoColors.activeBlue,
+                    ),
+                  );
+                });
+            for (int i = 0; i < ref.read(imageProvider).length; i++) {
+              String uniqueName = '${handler.newUser.user!.uid}/$uuid/$i.jpg';
+              UploadTask task = fbStorage
+                  .ref(uniqueName)
+                  .putFile(File(ref.read(imageProvider)[i].path));
               await task.whenComplete(() => null);
               String downloadURL =
                   await fbStorage.ref(uniqueName).getDownloadURL();
               url.add(downloadURL);
+            }
               CollectionReference myActiveAdsCollection = fbCloudFireStore
                   .collection('users')
                   .doc(handler.newUser.user!.uid)
@@ -265,44 +248,44 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
               } else {
                 print("This ad reference already exists in the subcategory");
               }
-            } else {
-              // image compression failed
+          }).then((_) {
+            if (!context.mounted) {
+              return;
             }
-          }
-        }).then((_) {
+            //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
+            resetFields();
+            Navigator.of(popContext).pop();
+            if (context.mounted) {
+              Navigator.of(context).push(
+                  CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
+            }
+          });
+        } catch (e) {
           if (!context.mounted) {
             return;
           }
-          //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
-          resetFields();
           Navigator.of(popContext).pop();
-          if (context.mounted) {
-            Navigator.of(context)
-                .push(CupertinoPageRoute(builder: (ctx) => const AdUploaded()));
-          }
-        });
-      } catch (e) {
-        if (!context.mounted) {
-          return;
+          showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              return CupertinoAlertDialog(
+                title: Text('Alert', style: GoogleFonts.roboto()),
+                content: Text(e.toString(), style: GoogleFonts.roboto()),
+                actions: [
+                  CupertinoDialogAction(
+                    child: Text('Okay', style: GoogleFonts.roboto()),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                  )
+                ],
+              );
+            },
+          );
         }
-        Navigator.of(popContext).pop();
-        showCupertinoDialog(
-          context: context,
-          builder: (ctx) {
-            return CupertinoAlertDialog(
-              title: Text('Alert', style: GoogleFonts.roboto()),
-              content: Text(e.toString(), style: GoogleFonts.roboto()),
-              actions: [
-                CupertinoDialogAction(
-                  child: Text('Okay', style: GoogleFonts.roboto()),
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },
-                )
-              ],
-            );
-          },
-        );
+      } else {
+        print("No Internet connection $internetCheck");
+        noInternetDialog();
       }
     }
   }

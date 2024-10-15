@@ -11,6 +11,7 @@ import 'package:college_project/UIPart/Providers/pagination_active_ads/show_sold
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile extends ConsumerStatefulWidget {
@@ -43,76 +44,111 @@ class _ProfileState extends ConsumerState<Profile> {
   }
 
   Future<void> executeSignOut(BuildContext signOutContext) async {
-    try {
-      await Future.delayed(const Duration(seconds: 1));
-      await handler.firebaseAuth.signOut();
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      handler.newUser.user = null;
-      ref.read(showActiveAdsProvider.notifier).resetState();
-      ref.read(showSoldAdsProvider.notifier).resetState();
-      ref.read(homeAdsprovider.notifier).resetState();
-      ref.read(showCatAdsProvider.notifier).resetState();
-      if (!signOutContext.mounted) return;
-      Navigator.pop(signOutContext);
-      moveToLogin();
-    } catch (e) {
-      Navigator.pop(signOutContext);
-      if (!context.mounted) return;
-      showCupertinoDialog(
-        context: context,
-        builder: (ctx) {
-          return CupertinoAlertDialog(
-            title: Text(
-              'Alert',
-              style: GoogleFonts.roboto(),
-            ),
-            content: Text(
-              e.toString(),
-              style: GoogleFonts.roboto(),
-            ),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                },
-                child: Text(
-                  'Okay',
-                  style: GoogleFonts.roboto(),
-                ),
+    final internetConnection = await InternetConnection().hasInternetAccess;
+    if (internetConnection) {
+      try {
+        await Future.delayed(const Duration(milliseconds: 900));
+        await handler.firebaseAuth.signOut();
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        handler.newUser.user = null;
+        ref.read(showActiveAdsProvider.notifier).resetState();
+        ref.read(showSoldAdsProvider.notifier).resetState();
+        ref.read(homeAdsprovider.notifier).resetState();
+        ref.read(showCatAdsProvider.notifier).resetState();
+        if (!signOutContext.mounted) return;
+        Navigator.pop(signOutContext);
+        moveToLogin();
+      } catch (e) {
+        Navigator.pop(signOutContext);
+        if (!context.mounted) return;
+        showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            return CupertinoAlertDialog(
+              title: Text(
+                'Alert',
+                style: GoogleFonts.roboto(),
               ),
-            ],
-          );
-        },
-      );
+              content: Text(
+                e.toString(),
+                style: GoogleFonts.roboto(),
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(
+                    'Okay',
+                    style: GoogleFonts.roboto(),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } else {
+      if (signOutContext.mounted) {
+        Navigator.pop(signOutContext);
+
+        showCupertinoDialog(
+          context: context,
+          builder: (ctx) {
+            return CupertinoAlertDialog(
+              title: Text(
+                'No Internet',
+                style: GoogleFonts.roboto(),
+              ),
+              content: Text(
+                'Please check your internet connection and try again',
+                style: GoogleFonts.roboto(),
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(
+                    'Okay',
+                    style: GoogleFonts.roboto(),
+                  ),
+                )
+              ],
+            );
+          },
+        );
+      }
     }
   }
 
-  spinner() {
+  void spinner() {
     late BuildContext signOutContext;
     showCupertinoDialog(
-        context: context,
-        builder: (ctx) {
-          signOutContext = ctx;
-          executeSignOut(signOutContext);
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CupertinoActivityIndicator(
-                  radius: 15,
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Text(
-                  'Loading...',
-                  style: GoogleFonts.roboto(),
-                )
-              ],
-            ),
-          );
-        });
+      context: context,
+      builder: (ctx) {
+        signOutContext = ctx;
+        executeSignOut(signOutContext);
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CupertinoActivityIndicator(
+                radius: 15,
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                'Loading...',
+                style: GoogleFonts.roboto(),
+              )
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override

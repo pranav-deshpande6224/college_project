@@ -3,10 +3,10 @@ import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.d
 import 'package:college_project/Authentication/Providers/error.dart';
 import 'package:college_project/Authentication/Providers/password_provider.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import '../../../../constants/constants.dart';
 
@@ -47,7 +47,7 @@ class _SignUpState extends ConsumerState<SignUp> {
     _emailController.dispose();
     _passwordController.dispose();
     _fnameController.dispose();
-   // _lnameController.dispose();
+    // _lnameController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
@@ -65,17 +65,6 @@ class _SignUpState extends ConsumerState<SignUp> {
     } else {
       ref.read(fnameErrorProvider.notifier).updateError('');
     }
-    // if (_lnameController.text.trim().isEmpty) {
-    //   ref
-    //       .read(lnameErrorProvider.notifier)
-    //       .updateError('Please enter your Last Name');
-    // } else if (_lnameController.text.trim().length < 3) {
-    //   ref
-    //       .read(lnameErrorProvider.notifier)
-    //       .updateError('Last Name should be atleast 3 characters');
-    // } else {
-    //   ref.read(lnameErrorProvider.notifier).updateError('');
-    // }
     if (_emailController.text.trim().isEmpty) {
       ref
           .read(emailErrorProvider.notifier)
@@ -108,7 +97,6 @@ class _SignUpState extends ConsumerState<SignUp> {
       ref.read(confirmPasswordErrorProvider.notifier).updateError('');
     }
     final fnameError = ref.read(fnameErrorProvider);
-    //final lnameError = ref.read(lnameErrorProvider);
     final emailError = ref.read(emailErrorProvider);
     final passwordError = ref.read(passwordErrorProvider);
     final confirmPasswordError = ref.read(confirmPasswordErrorProvider);
@@ -117,30 +105,60 @@ class _SignUpState extends ConsumerState<SignUp> {
         passwordError.isEmpty &&
         confirmPasswordError.isEmpty) {
       unfocusTextFields();
-      showCupertinoDialog(
-          context: context,
-          builder: (ctx) {
-            signUpContext = ctx;
-            handler.signUp(
-              _emailController.text.trim(),
-              _passwordController.text.trim(),
-              context,
-              signUpContext,
-              _fnameController.text.trim()
-           //   _lnameController.text.trim(),
-            );
-            return const Center(
-              child: CupertinoActivityIndicator(
-                radius: 15,
-              ),
-            );
-          });
+      final internetChecker = await InternetConnection().hasInternetAccess;
+      if (internetChecker) {
+        showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              signUpContext = ctx;
+              handler.signUp(
+                  _emailController.text.trim(),
+                  _passwordController.text.trim(),
+                  context,
+                  signUpContext,
+                  _fnameController.text.trim());
+              return const Center(
+                child: CupertinoActivityIndicator(
+                  radius: 15,
+                  
+                ),
+              );
+            });
+      } else {
+        if (context.mounted) {
+          showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              return CupertinoAlertDialog(
+                title: Text(
+                  'No Internet Connection',
+                  style: GoogleFonts.roboto(),
+                ),
+                content: Text(
+                  'Please check your internet connection and try again.',
+                  style: GoogleFonts.roboto(),
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                    child: Text(
+                      'Okay',
+                      style: GoogleFonts.roboto(),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      }
     }
   }
 
   void unfocusTextFields() {
     fnameFocusNode.unfocus();
-  //  lnameFocusNode.unfocus();
     emailFocusNode.unfocus();
     passwordFocusNode.unfocus();
     confirmPasswordFocusNode.unfocus();
@@ -238,12 +256,14 @@ class _SignUpState extends ConsumerState<SignUp> {
                           .read(confirmPasswordErrorProvider.notifier)
                           .updateError('');
                       ref.read(fnameErrorProvider.notifier).updateError('');
-                    //  ref.read(lnameErrorProvider.notifier).updateError('');
 
                       Navigator.of(context).pop();
                     },
-                    child: const CircleAvatar(
-                      backgroundColor: Constants.white,
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                          color: Constants.white, shape: BoxShape.circle),
                       child: Icon(
                         CupertinoIcons.back,
                         size: 30,
@@ -295,37 +315,6 @@ class _SignUpState extends ConsumerState<SignUp> {
                   const SizedBox(
                     height: 10,
                   ),
-                  // Consumer(
-                  //   builder: (context, ref, child) {
-                  //     final lastNameError = ref.watch(lnameErrorProvider);
-                  //     return getTextField(
-                  //         'Last Name',
-                  //         _lnameController,
-                  //         CupertinoIcons.person_add_solid,
-                  //         TextInputType.name,
-                  //         lnameFocusNode,
-                  //         lastNameError);
-                  //   },
-                  // ),
-                  // Consumer(
-                  //   builder: (context, ref, child) {
-                  //     final lastNameError = ref.watch(lnameErrorProvider);
-                  //     return lastNameError.isEmpty
-                  //         ? const SizedBox()
-                  //         : Padding(
-                  //             padding: const EdgeInsets.only(top: 10),
-                  //             child: Text(
-                  //               lastNameError,
-                  //               style: GoogleFonts.roboto(
-                  //                   color: CupertinoColors.systemRed,
-                  //                   fontSize: 16),
-                  //             ),
-                  //           );
-                  //   },
-                  // ),
-                  // const SizedBox(
-                  //   height: 10,
-                  // ),
                   Consumer(
                     builder: (context, ref, child) {
                       final emailError = ref.watch(emailErrorProvider);
@@ -567,18 +556,19 @@ class _SignUpState extends ConsumerState<SignUp> {
                     height: 50,
                     width: double.infinity,
                     child: CupertinoButton(
-                        color: CupertinoColors.activeBlue,
-                        padding: EdgeInsets.zero,
-                        child: Text(
-                          'Sign Up',
-                          style: GoogleFonts.roboto(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      color: CupertinoColors.activeBlue,
+                      padding: EdgeInsets.zero,
+                      child: Text(
+                        'Sign Up',
+                        style: GoogleFonts.roboto(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
                         ),
-                        onPressed: () {
-                          signupPressed();
-                        }),
+                      ),
+                      onPressed: () {
+                        signupPressed();
+                      },
+                    ),
                   )
                 ],
               ),

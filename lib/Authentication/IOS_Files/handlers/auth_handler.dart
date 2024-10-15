@@ -189,8 +189,8 @@ class AuthHandler {
     ));
   }
 
-  Future<void> storeSignUpData(BuildContext context, String email,
-      String firstName) async {
+  Future<void> storeSignUpData(
+      BuildContext context, String email, String firstName) async {
     if (newUser.user != null) {
       try {
         await fireStore.collection('users').doc(newUser.user!.uid).set({
@@ -224,28 +224,19 @@ class AuthHandler {
 
   Future<void> forgetPassword(String email, BuildContext context,
       BuildContext foregetPasswordContext) async {
-    final isEmailExists = await checkUserExistOrNot(email);
-    if (!isEmailExists) {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
       if (!context.mounted) return;
       Navigator.of(foregetPasswordContext).pop();
-      showErrorDialog(context, 'Alert',
-          'No user found for that email, if you are new user, please sign up.');
-    } else {
-      try {
-        await firebaseAuth.sendPasswordResetEmail(email: email);
-        if (!context.mounted) return;
-        Navigator.of(foregetPasswordContext).pop();
-        showAlert(context, email);
-      } on FirebaseAuthException catch (e) {
-        if (!context.mounted) return;
-        Navigator.of(foregetPasswordContext).pop();
-
-        showErrorDialog(
-          context,
-          'Alert',
-          e.toString(),
-        );
-      }
+      showAlert(context, email);
+    } on FirebaseAuthException catch (e) {
+      if (!context.mounted) return;
+      Navigator.of(foregetPasswordContext).pop();
+      showErrorDialog(
+        context,
+        'Alert',
+        e.toString(),
+      );
     }
   }
 

@@ -1,36 +1,15 @@
 import 'package:college_project/Authentication/IOS_Files/Screens/auth/email_verification.dart';
+import 'package:college_project/Authentication/IOS_Files/Screens/auth/forget_password.dart';
+import 'package:college_project/Authentication/IOS_Files/Screens/auth/sign_up.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/error.dart';
+import 'package:college_project/Authentication/Providers/password_provider.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../Providers/password_provider.dart';
-import 'forget_password.dart';
-import 'sign_up.dart';
-
-// RichText(
-//                 text: TextSpan(
-//                   text: 'Brand ',
-//                   style: GoogleFonts.roboto(
-//                     fontWeight: FontWeight.bold,
-//                     fontSize: 16,
-//                     color: error == ''
-//                         ? CupertinoColors.black
-//                         : CupertinoColors.systemRed,
-//                   ),
-//                   children: [
-//                     TextSpan(
-//                       text: '*',
-//                       style: GoogleFonts.roboto(
-//                         fontWeight: FontWeight.bold,
-//                         color: CupertinoColors.systemRed,
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class LoginIos extends ConsumerStatefulWidget {
   const LoginIos({super.key});
@@ -91,7 +70,9 @@ class _LoginIosState extends ConsumerState<LoginIos> {
     final passwordError = ref.read(passwordErrorProvider);
     if (emailError.isEmpty && passwordError.isEmpty) {
       unFocusTextFields();
-      showCupertinoDialog(
+      final internetChecker = await InternetConnection().hasInternetAccess;
+      if (internetChecker) {
+        showCupertinoDialog(
           context: context,
           builder: (ctx) {
             loginContext = ctx;
@@ -103,7 +84,35 @@ class _LoginIosState extends ConsumerState<LoginIos> {
                 radius: 15,
               ),
             );
-          });
+          },
+        );
+      } else {
+        showCupertinoDialog(
+            context: context,
+            builder: (ctx) {
+              return CupertinoAlertDialog(
+                title: Text(
+                  'No Internet',
+                  style: GoogleFonts.roboto(),
+                ),
+                content: Text(
+                  'Please check your internet connection and try again',
+                  style: GoogleFonts.roboto(),
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                    child: Text(
+                      'OK',
+                      style: GoogleFonts.roboto(),
+                    ),
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                  ),
+                ],
+              );
+            });
+      }
     }
   }
 
