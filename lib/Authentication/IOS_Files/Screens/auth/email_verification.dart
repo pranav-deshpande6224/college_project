@@ -4,6 +4,7 @@ import 'package:college_project/constants/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../UIPart/IOS_Files/screens/bottom_nav_bar.dart';
@@ -134,8 +135,51 @@ class _EmailVerificationState extends State<EmailVerification> {
                     width: double.infinity,
                     child: CupertinoButton(
                       color: CupertinoColors.activeBlue,
-                      onPressed: () {
-                        resendEmailLink();
+                      onPressed: () async {
+                        final checkInternet =
+                            await InternetConnection().hasInternetAccess;
+                        if (checkInternet) {
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (ctx) {
+                              return CupertinoAlertDialog(
+                                title:
+                                    Text("Alert", style: GoogleFonts.roboto()),
+                                content: Text(
+                                  "A New verification link will be sent to your email address ${widget.email}",
+                                  style: GoogleFonts.roboto(),
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: Text("Okay"),
+                                    onPressed: () {
+                                      resendEmailLink();
+                                      Navigator.of(ctx).pop();
+                                    },
+                                  )
+                                ],
+                              );
+                            },
+                          );
+                        } else {
+                          showCupertinoDialog(
+                            context: context,
+                            builder: (ctx) {
+                              return CupertinoAlertDialog(
+                                  title: Text(' Alert'),
+                                  content: Text(
+                                      'No Internet Connection Please check your internet connection and try again'),
+                                  actions: [
+                                    CupertinoDialogAction(
+                                      child: Text("Okay"),
+                                      onPressed: () {
+                                        Navigator.of(ctx).pop();
+                                      },
+                                    ),
+                                  ]);
+                            },
+                          );
+                        }
                       },
                       child: Text(
                         'Resend Email',

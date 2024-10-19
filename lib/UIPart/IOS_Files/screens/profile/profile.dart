@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile extends ConsumerStatefulWidget {
@@ -220,6 +221,7 @@ class _ProfileState extends ConsumerState<Profile> {
                               return About();
                             }));
                           } else if (index == 2) {
+                            Share.share("hello");
                           } else if (index == 3) {
                             Navigator.of(context, rootNavigator: true).push(
                               CupertinoPageRoute(

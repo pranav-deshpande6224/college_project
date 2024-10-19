@@ -30,35 +30,49 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
   final int _itemsPerPageHome = 8;
   AuthHandler handler = AuthHandler.authHandlerInstance;
 
+  Stream<List<Item>> _listenToAds() {
+    print("This function called once product is added");
+
+    final firestore = handler.fireStore;
+    return firestore
+        .collection('AllAds')
+        .orderBy('createdAt', descending: true)
+        .limit(_itemsPerPageHome)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      await Future.delayed(Duration(seconds: 1));
+      print("Reaching here after doc is added or the initial fetch");
+      List<Item> items = [];
+      for (var doc in snapshot.docs) {
+        DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
+        DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
+        print("Reaching here to each doc");
+        print(dataDoc.data());
+        Timestamp timeStamp = doc.data()['createdAt'];
+        print("got the timestamp of each doc");
+        final dateString = DateFormat('dd--MM--yy').format(timeStamp.toDate());
+        print('$dateString of the doc');
+        final item =
+            Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc);
+        items.add(item);
+      }
+      return items;
+    });
+  }
+
   Future<void> fetchInitialItems() async {
     if (_isLoadingHome) return;
     _isLoadingHome = true;
-    final fireStore = handler.fireStore;
     if (handler.newUser.user != null) {
       try {
-        Query<Map<String, dynamic>> query = fireStore
-            .collection('AllAds')
-            .orderBy('createdAt', descending: true)
-            .limit(_itemsPerPageHome);
-
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
-
-        List<Item> items = [];
-        for (final doc in querySnapshot.docs) {
-          DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
-          DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-          Timestamp timeStamp = doc.data()['createdAt'];
-          final dateString =
-              DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          final item =
-              Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc);
-          items.add(item);
-        }
-        if (querySnapshot.docs.isNotEmpty) {
-          _lastHomeDocument = querySnapshot.docs.last;
-        }
-        _hasMoreHome = querySnapshot.docs.length == _itemsPerPageHome;
-        state = AsyncValue.data(HomeAdState(items: items));
+        _listenToAds().listen((ads) {
+          if (ads.isNotEmpty) {
+            _lastHomeDocument = ads.last.documentSnapshot
+                as DocumentSnapshot<Map<String, dynamic>>;
+          }
+          _hasMoreHome = ads.length == _itemsPerPageHome;
+          state = AsyncValue.data(HomeAdState(items: ads));
+        });
       } catch (error, stack) {
         state = AsyncValue.error(error, stack);
       } finally {
@@ -77,12 +91,12 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
     await fetchInitialItems();
   }
 
-  void deleteItem(Item item) {
-    state = AsyncValue.data(state.asData!.value.copyWith(
-        items: state.asData!.value.items.where((element) {
-      return element.id != item.id;
-    }).toList()));
-  }
+  // void deleteItem(Item item) {
+  //   state = AsyncValue.data(state.asData!.value.copyWith(
+  //       items: state.asData!.value.items.where((element) {
+  //     return element.id != item.id;
+  //   }).toList()));
+  // }
 
   void resetState() {
     _hasMoreHome = true;

@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
-import 'package:college_project/UIPart/IOS_Files/screens/sell/product_get_info.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/show_sold_ads.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

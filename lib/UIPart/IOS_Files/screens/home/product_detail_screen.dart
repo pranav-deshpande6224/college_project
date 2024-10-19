@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/chats/chatting_screen.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/image_detail_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -266,7 +267,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context, rootNavigator: true).push(
+                              CupertinoPageRoute(
+                                builder: (ctx) => ChattingScreen(
+                                  item: widget.item,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),

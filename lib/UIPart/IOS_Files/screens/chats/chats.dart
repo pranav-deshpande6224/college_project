@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
-
-import '../../../../constants/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Chats extends StatefulWidget {
   const Chats({super.key});
@@ -13,13 +12,15 @@ class _ChatsState extends State<Chats> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Constants.screenBgColor,
-        child: const Center(
-          child: Text('Chats Screen'),
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          'Inbox',
+          style: GoogleFonts.roboto(),
         ),
+      ),
+      child: Center(
+        child:
+            CupertinoButton(child: Text(" chatting screen "), onPressed: () {}),
       ),
     );
   }
