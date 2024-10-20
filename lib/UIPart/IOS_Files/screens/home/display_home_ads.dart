@@ -5,7 +5,6 @@ import 'package:college_project/UIPart/IOS_Files/model/category.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/sell/detail_screen.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/home_ads.dart';
-import 'package:college_project/UIPart/repository/user_repository.dart';
 import 'package:college_project/constants/constants.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/Cupertino.dart';
@@ -21,7 +20,6 @@ class DisplayHomeAds extends ConsumerStatefulWidget {
 class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
   late AuthHandler handler;
   final ScrollController homeAdScrollController = ScrollController();
-  final UserRepository userRepository = UserRepository();
   final List<SellCategory> categoryList = const [
     SellCategory(
         icon: CupertinoIcons.phone,
@@ -492,6 +490,7 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                                             children: [
                                               Text(
                                                 '₹ ${ad.price.toInt()}',
+                                                textAlign: TextAlign.start,
                                                 style: GoogleFonts.roboto(
                                                   fontWeight: FontWeight.w800,
                                                   fontSize: 19,
@@ -499,7 +498,7 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                                               ),
                                               Text(
                                                 ad.adTitle,
-                                                textAlign: TextAlign.center,
+                                                textAlign: TextAlign.start,
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.roboto(),
@@ -558,7 +557,9 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                                     ),
                                     Text(
                                       'Fetching Content...',
-                                      style: TextStyle(),
+                                      style: GoogleFonts.roboto(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     )
                                   ],
                                 ),
@@ -580,7 +581,12 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                           const SizedBox(
                             height: 10,
                           ),
-                          const Text('Loading...')
+                          Text(
+                            'Loading...',
+                            style: GoogleFonts.roboto(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
                         ],
                       ),
                     );

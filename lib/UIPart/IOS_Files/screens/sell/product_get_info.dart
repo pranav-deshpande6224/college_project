@@ -195,27 +195,30 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 .doc(handler.newUser.user!.uid)
                 .collection('MyActiveAds');
             final timeStamp = FieldValue.serverTimestamp();
-            DocumentReference adDocRef = await myActiveAdsCollection.add({
-              'adTitle': _adTitleController.text.trim(),
-              'adDescription': _adDescriptionController.text.trim(),
-              'price': double.parse(_priceController.text.trim()),
-              'brand': categoryForPostingData == Constants.mobilePhone
-                  ? _brandController.text.trim()
-                  : '',
-              'tablet_type': categoryForPostingData == Constants.tablet
-                  ? _tabletBrands[ref.read(selectedIpadProvider)]
-                  : '',
-              'charger_type':
-                  categoryForPostingData == Constants.mobileChargerLaptopCharger
-                      ? chargers[ref.read(selectChargerProvider)]
-                      : '',
-              'images': url,
-              'createdAt': timeStamp,
-              'postedBy': '${handler.newUser.user!.displayName}',
-              'categoryName': widget.categoryName,
-              'subCategoryName': widget.subCategoryName,
-              'userId': handler.newUser.user!.uid
-            });
+            DocumentReference adDocRef = await myActiveAdsCollection.add(
+              {
+                'adTitle': _adTitleController.text.trim(),
+                'adDescription': _adDescriptionController.text.trim(),
+                'price': double.parse(_priceController.text.trim()),
+                'brand': categoryForPostingData == Constants.mobilePhone
+                    ? _brandController.text.trim()
+                    : '',
+                'tablet_type': categoryForPostingData == Constants.tablet
+                    ? _tabletBrands[ref.read(selectedIpadProvider)]
+                    : '',
+                'charger_type': categoryForPostingData ==
+                        Constants.mobileChargerLaptopCharger
+                    ? chargers[ref.read(selectChargerProvider)]
+                    : '',
+                'images': url,
+                'createdAt': timeStamp,
+                'postedBy': '${handler.newUser.user!.displayName}',
+                'categoryName': widget.categoryName,
+                'subCategoryName': widget.subCategoryName,
+                'userId': handler.newUser.user!.uid,
+                'isAvailable': true,
+              },
+            );
             CollectionReference allAdsCollection =
                 fbCloudFireStore.collection('AllAds');
             QuerySnapshot existingPost = await allAdsCollection

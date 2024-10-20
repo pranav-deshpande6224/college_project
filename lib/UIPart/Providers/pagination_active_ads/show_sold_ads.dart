@@ -47,7 +47,7 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
           Timestamp timeStamp = doc.data()['createdAt'];
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(doc.data(), doc.id, dateString, doc);
+          return Item.fromJson(doc.data(), doc.id, dateString, doc, null);
         }).toList();
         if (querySnapshot.docs.isNotEmpty) {
           _soldLastDocument = querySnapshot.docs.last;
@@ -69,6 +69,7 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
     if (_isLoadingSold) return;
     _soldLastDocument = null;
     _hasMoreSold = true;
+    state = AsyncValue.loading();
     await fetchInitialItems();
   }
 
@@ -110,7 +111,7 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
           Timestamp timeStamp = doc.data()['createdAt'];
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(doc.data(), doc.id, dateString, doc);
+          return Item.fromJson(doc.data(), doc.id, dateString, doc, null);
         }).toList();
         if (newDocs.isNotEmpty) {
           _soldLastDocument = querySnapshot.docs.last;

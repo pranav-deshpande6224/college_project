@@ -55,7 +55,7 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
           final item =
-              Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc);
+              Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
           items.add(item);
         }
         if (querySnapshot.docs.isNotEmpty) {
@@ -84,6 +84,7 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
     if (_isLoadingCategory) return; // Prevent multiple simultaneous requests
     _lastDocument = null;
     _hasMoreCategory = true;
+    state = AsyncValue.loading();
     await fetchInitialItems(category, subCategory);
   }
 
@@ -122,7 +123,7 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
           Timestamp timeStamp = doc.data()['createdAt'];
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc);
+          return Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
         }).toList());
         if (moreHomeItems.isNotEmpty) {
           _lastDocument = querySnapshot.docs.last;

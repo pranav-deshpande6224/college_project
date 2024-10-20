@@ -207,7 +207,9 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
                                         ),
                                         Text(
                                           'Fetching Content...',
-                                          style: TextStyle(),
+                                          style: GoogleFonts.roboto(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         )
                                       ],
                                     ),
@@ -230,7 +232,12 @@ class _MySoldAdsState extends ConsumerState<MySoldAds> {
                               const SizedBox(
                                 height: 10,
                               ),
-                              const Text('Loading...')
+                              Text(
+                                'Loading...',
+                                style: GoogleFonts.roboto(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
                             ],
                           ),
                         );

@@ -49,7 +49,7 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
           Timestamp timeStamp = doc.data()['createdAt'];
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(doc.data(), doc.id, dateString, doc);
+          return Item.fromJson(doc.data(), doc.id, dateString, doc, null);
         }).toList();
 
         if (querySnapshot.docs.isNotEmpty) {
@@ -72,6 +72,7 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
     if (_isLoading) return; // Prevent multiple simultaneous requests
     _lastDocument = null;
     _hasMore = true;
+    state = AsyncValue.loading();
     await fetchInitialItems();
   }
 
@@ -103,7 +104,7 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
           Timestamp timeStamp = doc.data()['createdAt'];
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(doc.data(), doc.id, dateString, doc);
+          return Item.fromJson(doc.data(), doc.id, dateString, doc, null);
         }).toList();
         if (newDocs.isNotEmpty) {
           _lastDocument = querySnapshot.docs.last;

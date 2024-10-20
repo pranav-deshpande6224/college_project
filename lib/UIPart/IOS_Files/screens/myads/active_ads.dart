@@ -5,13 +5,11 @@ import 'package:college_project/Authentication/Providers/internet_provider.dart'
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
 import 'package:college_project/UIPart/IOS_Files/widgets/ad_card.dart';
-import 'package:college_project/UIPart/Providers/pagination_active_ads/home_ads.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/show_ads.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class MyAds extends ConsumerStatefulWidget {
@@ -117,7 +115,7 @@ class _MyAdsState extends ConsumerState<MyAds> {
               await snapshot.reference.delete();
             });
             ref.read(showActiveAdsProvider.notifier).deleteItem(item);
-           // ref.read(homeAdsprovider.notifier).deleteItem(item);
+            // ref.read(homeAdsprovider.notifier).deleteItem(item);
             //ref.read(showCatAdsProvider.notifier).deleteItem(item);
             Navigator.of(sellContext).pop();
             print('done executing');
@@ -334,10 +332,10 @@ class _MyAdsState extends ConsumerState<MyAds> {
                                           SizedBox(
                                             height: 10,
                                           ),
-                                          Text(
-                                            'Fetching Content...',
-                                            style: TextStyle(),
-                                          )
+                                          Text('Fetching Content...',
+                                              style: GoogleFonts.roboto(
+                                                fontWeight: FontWeight.bold,
+                                              ))
                                         ],
                                       ),
                                     ),
@@ -360,7 +358,12 @@ class _MyAdsState extends ConsumerState<MyAds> {
                               const SizedBox(
                                 height: 10,
                               ),
-                              const Text('Loading...')
+                              Text(
+                                'Loading...',
+                                style: GoogleFonts.roboto(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
                             ],
                           ),
                         );

@@ -15,7 +15,9 @@ class Item {
   final String chargerType;
   final String tabletType;
   final DocumentSnapshot documentSnapshot;
+  final DocumentReference<Map<String, dynamic>>? reference;
   const Item({
+    required this.reference,
     required this.documentSnapshot,
     required this.chargerType,
     required this.tabletType,
@@ -41,8 +43,9 @@ class Item {
   }
 
   factory Item.fromJson(Map<String, dynamic> json, String productId,
-      String createdAt, DocumentSnapshot doc) {
+      String createdAt, DocumentSnapshot doc, DocumentReference<Map<String,dynamic>>? reference) {
     return Item(
+      reference: reference,
       id: productId,
       userid: json['userId'],
       adTitle: json['adTitle'],

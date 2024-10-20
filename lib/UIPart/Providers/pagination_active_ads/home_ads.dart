@@ -31,8 +31,6 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
   AuthHandler handler = AuthHandler.authHandlerInstance;
 
   Stream<List<Item>> _listenToAds() {
-    print("This function called once product is added");
-
     final firestore = handler.fireStore;
     return firestore
         .collection('AllAds')
@@ -41,19 +39,18 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
         .snapshots()
         .asyncMap((snapshot) async {
       await Future.delayed(Duration(seconds: 1));
-      print("Reaching here after doc is added or the initial fetch");
       List<Item> items = [];
       for (var doc in snapshot.docs) {
         DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
         DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-        print("Reaching here to each doc");
-        print(dataDoc.data());
+       
+       
         Timestamp timeStamp = doc.data()['createdAt'];
-        print("got the timestamp of each doc");
+        
         final dateString = DateFormat('dd--MM--yy').format(timeStamp.toDate());
-        print('$dateString of the doc');
+        
         final item =
-            Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc);
+            Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
         items.add(item);
       }
       return items;
@@ -88,15 +85,10 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
     if (_isLoadingHome) return; // Prevent multiple simultaneous requests
     _lastHomeDocument = null;
     _hasMoreHome = true;
+    state = AsyncValue.loading();
     await fetchInitialItems();
   }
 
-  // void deleteItem(Item item) {
-  //   state = AsyncValue.data(state.asData!.value.copyWith(
-  //       items: state.asData!.value.items.where((element) {
-  //     return element.id != item.id;
-  //   }).toList()));
-  // }
 
   void resetState() {
     _hasMoreHome = true;
@@ -130,7 +122,7 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
           final dateString =
               DateFormat('dd--MM--yy').format(timeStamp.toDate());
 
-          return Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc);
+          return Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
         }).toList());
         if (moreHomeItems.isNotEmpty) {
           _lastHomeDocument = querySnapshot.docs.last;
