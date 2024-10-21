@@ -69,7 +69,7 @@ class AdCard extends ConsumerWidget {
         fireStore
             .collection('users')
             .doc(handler.newUser.user!.uid)
-            .collection('MySoldAds')
+            .collection('MyActiveAds')
             .doc(ad.id)
             .delete();
       });
@@ -231,53 +231,6 @@ class AdCard extends ConsumerWidget {
                     ),
                   ),
                 ),
-
-                // Expanded(
-                //   child: GestureDetector(
-                //     onTap: () {
-                //       Navigator.of(context, rootNavigator: true).push(
-                //         CupertinoPageRoute(
-                //           builder: (ctx) => ProductGetInfo(
-                //             categoryName: ad.categoryName,
-                //             subCategoryName: ad.subCategoryName,
-                //             ad: ad,
-                //             isEditAd: true,
-                //           ),
-                //         ),
-                //       );
-                //     },
-                //     child: Container(
-                //       decoration: BoxDecoration(
-                //         border: Border.all(
-                //           width: 2,
-                //           color: CupertinoColors.black,
-                //         ),
-                //         borderRadius: BorderRadius.circular(8),
-                //       ),
-                //       child: Center(
-                //         child: Row(
-                //           mainAxisAlignment: MainAxisAlignment.center,
-                //           children: [
-                //             const Icon(
-                //               CupertinoIcons.pencil,
-                //               color: CupertinoColors.black,
-                //               size: 25,
-                //             ),
-                //             const SizedBox(
-                //               width: 8,
-                //             ),
-                //             Text(
-                //               'Edit Product',
-                //               style: GoogleFonts.roboto(
-                //                 fontWeight: FontWeight.w500,
-                //               ),
-                //             ),
-                //           ],
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // )
               ],
             ),
           ),

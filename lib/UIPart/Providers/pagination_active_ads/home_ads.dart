@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class HomeAdState {
   final List<Item> items;
@@ -30,6 +30,21 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
   final int _itemsPerPageHome = 8;
   AuthHandler handler = AuthHandler.authHandlerInstance;
 
+  StreamSubscription<List<Item>>? _adsSubscription;
+
+  void _subscribeToAds() {
+    _adsSubscription = _listenToAds().listen((ads) {
+      if (ads.isNotEmpty) {
+        _lastHomeDocument =
+            ads.last.documentSnapshot as DocumentSnapshot<Map<String, dynamic>>;
+      }
+      _hasMoreHome = ads.length == _itemsPerPageHome;
+      state = AsyncValue.data(HomeAdState(items: ads));
+    }, onError: (error, stack) {
+      state = AsyncValue.error(error, stack);
+    });
+  }
+
   Stream<List<Item>> _listenToAds() {
     final firestore = handler.fireStore;
     return firestore
@@ -43,14 +58,7 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
       for (var doc in snapshot.docs) {
         DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
         DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-       
-       
-        Timestamp timeStamp = doc.data()['createdAt'];
-        
-        final dateString = DateFormat('dd--MM--yy').format(timeStamp.toDate());
-        
-        final item =
-            Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
+        final item = Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
         items.add(item);
       }
       return items;
@@ -62,14 +70,7 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
     _isLoadingHome = true;
     if (handler.newUser.user != null) {
       try {
-        _listenToAds().listen((ads) {
-          if (ads.isNotEmpty) {
-            _lastHomeDocument = ads.last.documentSnapshot
-                as DocumentSnapshot<Map<String, dynamic>>;
-          }
-          _hasMoreHome = ads.length == _itemsPerPageHome;
-          state = AsyncValue.data(HomeAdState(items: ads));
-        });
+        _subscribeToAds();
       } catch (error, stack) {
         state = AsyncValue.error(error, stack);
       } finally {
@@ -89,12 +90,22 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
     await fetchInitialItems();
   }
 
-
   void resetState() {
+    _cancelSubscription();
     _hasMoreHome = true;
     _isLoadingHome = false;
     _lastHomeDocument = null;
     state = AsyncValue.loading();
+  }
+
+  void _cancelSubscription(){
+    _adsSubscription?.cancel();
+    _adsSubscription = null;
+  }
+  @override
+  void dispose() {
+    _cancelSubscription(); // Ensure the subscription is canceled
+    super.dispose();
   }
 
   Future<void> fetchMoreItems() async {
@@ -118,11 +129,8 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
             await Future.wait(querySnapshot.docs.map((doc) async {
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
           DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-          Timestamp timeStamp = doc.data()['createdAt'];
-          final dateString =
-              DateFormat('dd--MM--yy').format(timeStamp.toDate());
 
-          return Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
+          return Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
         }).toList());
         if (moreHomeItems.isNotEmpty) {
           _lastHomeDocument = querySnapshot.docs.last;

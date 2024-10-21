@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/internet_provider.dart';
 import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
@@ -7,6 +8,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/Cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class DisplayCategoryAds extends ConsumerStatefulWidget {
   final String categoryName;
@@ -52,6 +54,13 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
     super.dispose();
   }
 
+  String getDate(Timestamp timestamp) {
+    DateTime dateTime = timestamp.toDate(); // Convert Timestamp to DateTime
+    String formattedDate =
+        DateFormat('dd-MM-yy').format(dateTime); // Format DateTime
+    return formattedDate;
+  }
+
   @override
   Widget build(BuildContext context) {
     final connectivityState = ref.watch(connectivityProvider);
@@ -78,20 +87,19 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                     style: GoogleFonts.roboto(),
                   ),
                   CupertinoButton(
-                      child: Text(
-                        'Retry',
-                        style: GoogleFonts.roboto(),
-                      ),
-                      onPressed: () async {
-                        final x = ref.refresh(connectivityProvider);
-                        final y = ref.refresh(internetCheckerProvider);
-                        debugPrint(x.toString());
-                        debugPrint(y.toString());
-                        await ref
-                            .read(showCatAdsProvider.notifier)
-                            .refreshItems(
-                                widget.categoryName, widget.subCategoryName);
-                      })
+                    child: Text(
+                      'Retry',
+                      style: GoogleFonts.roboto(),
+                    ),
+                    onPressed: () async {
+                      final x = ref.refresh(connectivityProvider);
+                      final y = ref.refresh(internetCheckerProvider);
+                      debugPrint(x.toString());
+                      debugPrint(y.toString());
+                      await ref.read(showCatAdsProvider.notifier).refreshItems(
+                          widget.categoryName, widget.subCategoryName);
+                    },
+                  )
                 ],
               ),
             );
@@ -173,9 +181,8 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                                             CupertinoPageRoute(
                                               builder: (ctx) {
                                                 return ProductDetailScreen(
-                                                  item: catAd,
-                                                  yourAd: catAd.userid ==
-                                                      handler.newUser.user!.uid,
+                                                  documentReference:
+                                                      catAd.documentReference,
                                                 );
                                               },
                                             ),
@@ -284,7 +291,8 @@ class _DisplayCategoryAdsState extends ConsumerState<DisplayCategoryAds> {
                                                               height: 4,
                                                             ),
                                                             Text(
-                                                              catAd.createdAt,
+                                                              getDate(catAd
+                                                                  .timestamp),
                                                               style: GoogleFonts
                                                                   .roboto(
                                                                 fontWeight:

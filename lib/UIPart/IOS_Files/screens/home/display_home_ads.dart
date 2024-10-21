@@ -167,19 +167,20 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                         style: GoogleFonts.roboto(),
                       ),
                       CupertinoButton(
-                          child: Text(
-                            'Retry',
-                            style: GoogleFonts.roboto(),
-                          ),
-                          onPressed: () async {
-                            final x = ref.refresh(connectivityProvider);
-                            final y = ref.refresh(internetCheckerProvider);
-                            debugPrint(x.toString());
-                            debugPrint(y.toString());
-                            await ref
-                                .read(homeAdsprovider.notifier)
-                                .refreshItems();
-                          })
+                        child: Text(
+                          'Retry',
+                          style: GoogleFonts.roboto(),
+                        ),
+                        onPressed: () async {
+                          final x = ref.refresh(connectivityProvider);
+                          final y = ref.refresh(internetCheckerProvider);
+                          debugPrint(x.toString());
+                          debugPrint(y.toString());
+                          await ref
+                              .read(homeAdsprovider.notifier)
+                              .refreshItems();
+                        },
+                      )
                     ],
                   ),
                 );
@@ -438,27 +439,39 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                                     CupertinoPageRoute(
                                       builder: (ctx) {
                                         return ProductDetailScreen(
-                                          item: ad,
-                                          yourAd: ad.userid ==
-                                              handler.newUser.user!.uid,
+                                          documentReference:
+                                              ad.documentReference,
                                         );
                                       },
                                     ),
                                   );
                                 },
                                 child: Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(5.0),
+                                    decoration: BoxDecoration(
+                                        border: Border.all(width: 0.2),
+                                        color: CupertinoColors.systemBackground,
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: CupertinoColors.systemGrey
+                                                .withOpacity(0.2),
+                                            blurRadius: 8,
+                                            offset: Offset(0, 4),
+                                          )
+                                        ]),
                                     child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          flex: 9,
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(12),
+                                          ),
                                           child: CachedNetworkImage(
+                                            height: 120,
+                                            width: double.infinity,
                                             imageUrl: ad.images[0],
+                                            fit: BoxFit.cover,
                                             errorWidget: (context, url, error) {
                                               return const Icon(
                                                 CupertinoIcons
@@ -474,6 +487,8 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                                                 (context, imageProvider) {
                                               return Container(
                                                 decoration: BoxDecoration(
+                                                  color: CupertinoColors
+                                                      .systemGrey6,
                                                   image: DecorationImage(
                                                     image: imageProvider,
                                                   ),
@@ -482,60 +497,52 @@ class _DisplayHomeAdsState extends ConsumerState<DisplayHomeAds> {
                                             },
                                           ),
                                         ),
-                                        Expanded(
-                                          flex: 4,
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                '₹ ${ad.price.toInt()}',
-                                                textAlign: TextAlign.start,
-                                                style: GoogleFonts.roboto(
-                                                  fontWeight: FontWeight.w800,
-                                                  fontSize: 19,
-                                                ),
-                                              ),
-                                              Text(
-                                                ad.adTitle,
-                                                textAlign: TextAlign.start,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: GoogleFonts.roboto(),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
                                           child: Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
                                             children: [
                                               Text(
-                                                maxLines: 1,
-                                                textAlign: TextAlign.center,
+                                                '₹ ${ad.price.toInt()}',
+                                                style: GoogleFonts.roboto(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                height: 4,
+                                              ),
+                                              Text(
+                                                ad.adTitle,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                height: 6,
+                                              ),
+                                              Text(
                                                 overflow: TextOverflow.ellipsis,
                                                 ad.postedBy,
                                                 style: GoogleFonts.roboto(
                                                   fontWeight: FontWeight.w600,
+                                                  fontSize: 12,
                                                 ),
-                                              ),
+                                              )
                                             ],
                                           ),
                                         )
                                       ],
-                                    ),
-                                  ),
-                                ),
+                                    )),
                               );
                             }),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              childAspectRatio: 3 / 4,
+                              childAspectRatio: 0.85,
                               crossAxisSpacing: 10,
                               mainAxisSpacing: 10,
                             ),

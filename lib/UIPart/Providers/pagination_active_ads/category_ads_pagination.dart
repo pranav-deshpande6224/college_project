@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class CategoryAdsState {
   final List<Item> items;
@@ -32,39 +32,51 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
   bool _hasMoreCategory = true;
   bool _isLoadingCategory = false;
   AuthHandler handler = AuthHandler.authHandlerInstance;
+  StreamSubscription<List<Item>>? _adsSubscription;
+
+  void _subscribeToAds(String category, String subCategory) {
+    _adsSubscription = _listenToAds(category, subCategory).listen((ads) {
+      if (ads.isNotEmpty) {
+        _lastDocument =
+            ads.last.documentSnapshot as DocumentSnapshot<Map<String, dynamic>>;
+      }
+      _hasMoreCategory = ads.length == _itemsPerPage;
+      state = AsyncValue.data(CategoryAdsState(items: ads));
+    }, onError: (error, stack) {
+      state = AsyncValue.error(error, stack);
+    });
+  }
+
+  Stream<List<Item>> _listenToAds(String category, String subCategory) {
+    final firestore = handler.fireStore;
+    return firestore
+        .collection('Category')
+        .doc(category)
+        .collection('Subcategories')
+        .doc(subCategory)
+        .collection('Ads')
+        .orderBy('createdAt', descending: true)
+        .limit(_itemsPerPage)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      await Future.delayed(Duration(seconds: 1));
+      List<Item> items = [];
+      for (var doc in snapshot.docs) {
+        DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
+        DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
+        final item = Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
+        items.add(item);
+      }
+      return items;
+    });
+  }
+
   Future<void> fetchInitialItems(String category, String subCategory) async {
     if (_isLoadingCategory) return;
     _isLoadingCategory = true;
-    final fireStore = handler.fireStore;
     if (handler.newUser.user != null) {
       try {
-        Query<Map<String, dynamic>> query = fireStore
-            .collection('Category')
-            .doc(category)
-            .collection('Subcategories')
-            .doc(subCategory)
-            .collection('Ads')
-            .orderBy('createdAt', descending: true)
-            .limit(_itemsPerPage);
-        QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
-        List<Item> items = [];
-        for (final doc in querySnapshot.docs) {
-          DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
-          DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-          Timestamp timeStamp = doc.data()['createdAt'];
-          final dateString =
-              DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          final item =
-              Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
-          items.add(item);
-        }
-        if (querySnapshot.docs.isNotEmpty) {
-          _lastDocument = querySnapshot.docs.last;
-        }
-        _hasMoreCategory = querySnapshot.docs.length == _itemsPerPage;
-        state = AsyncValue.data(CategoryAdsState(
-          items: items,
-        ));
+        _subscribeToAds(category, subCategory);
       } catch (error, stack) {
         state = AsyncValue.error(error, stack);
       } finally {
@@ -75,11 +87,7 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
       return;
     }
   }
- void deleteItem(Item item){
-    state = AsyncValue.data(state.asData!.value.copyWith(items: state.asData!.value.items.where((element) {
-      return element.id != item.id;
-    }).toList()));
-  } 
+
   Future<void> refreshItems(String category, String subCategory) async {
     if (_isLoadingCategory) return; // Prevent multiple simultaneous requests
     _lastDocument = null;
@@ -88,14 +96,26 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
     await fetchInitialItems(category, subCategory);
   }
 
-  void resetState(){
+  void resetState() {
+    _cancelSubscription();
     _hasMoreCategory = true;
     _isLoadingCategory = false;
     _lastDocument = null;
     state = AsyncValue.loading();
   }
-  
-  Future<void> fetchMoreItems( String category, String subCategory) async {
+
+  void _cancelSubscription() {
+    _adsSubscription?.cancel();
+    _adsSubscription = null;
+  }
+
+  @override
+  void dispose() {
+    _cancelSubscription();
+    super.dispose();
+  }
+
+  Future<void> fetchMoreItems(String category, String subCategory) async {
     if (_isLoadingCategory ||
         !_hasMoreCategory ||
         state.asData?.value.isLoadingMore == true) {
@@ -120,10 +140,8 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
             await Future.wait(querySnapshot.docs.map((doc) async {
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
           DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-          Timestamp timeStamp = doc.data()['createdAt'];
-          final dateString =
-              DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(dataDoc.data()!, dataDoc.id, dateString, doc, ref);
+
+          return Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
         }).toList());
         if (moreHomeItems.isNotEmpty) {
           _lastDocument = querySnapshot.docs.last;
@@ -148,108 +166,3 @@ final showCatAdsProvider =
     StateNotifierProvider<ShowCategoryAds, AsyncValue<CategoryAdsState>>((ref) {
   return ShowCategoryAds();
 });
-
-
-
-
-
-
-// import 'dart:async';
-
-// import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:college_project/UIPart/IOS_Files/model/item.dart';
-// import 'package:college_project/UIPart/Providers/pagination_active_ads/pagination_state.dart';
-// import 'package:college_project/UIPart/repository/category_repository.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// class CategoryAdsPagination<T> extends StateNotifier<PaginationState<T>> {
-//   final Future<List<T>> Function(
-//           DocumentSnapshot? lastDocument, String category, String subCategory)
-//       fetchItems;
-//   final int itemsPerBatch;
-//   final List<T> _items = [];
-//   bool noMoreAds = false;
-//   DocumentSnapshot? lastDocumentSnapshot;
-//   String category = '';
-//   String subCategory = '';
-
-//   Timer _timer = Timer(Duration(milliseconds: 0), () {});
-//   CategoryAdsPagination({
-//     required this.fetchItems,
-//     required this.itemsPerBatch,
-//   }) : super(const PaginationState.loading());
-
-//   void setCategoryAndSubCategory(String category, String subCategory) {
-//     this.category = category;
-//     this.subCategory = subCategory;
-//   }
-
-//   void init() {
-//     if (_items.isEmpty && category.isNotEmpty && subCategory.isNotEmpty) {
-//       fetchFirstCategoryBatch();
-//     }
-//   }
-
-//   void updateData(List<T> result, DocumentSnapshot? lastDocument) {
-//     noMoreAds = result.length < itemsPerBatch;
-//     lastDocumentSnapshot = lastDocument;
-//     if (result.isEmpty) {
-//       state = PaginationState.data(_items);
-//     } else {
-//       print("State has changed");
-//       state = PaginationState.data(_items..addAll(result));
-//     }
-//   }
-
-//   Future<void> fetchFirstCategoryBatch() async {
-//     print(category);
-//     print(subCategory);
-//     if (category.isEmpty || subCategory.isEmpty) return;
-//     try {
-//       state = const PaginationState.loading();
-//       final List<T> result = await fetchItems(null, category, subCategory);
-//       final DocumentSnapshot? lastDocument =
-//           result.isNotEmpty ? (result.last as Item).documentSnapshot : null;
-//       updateData(result, lastDocument);
-//     } catch (e, stk) {
-//       state = PaginationState.error(e, stk);
-//     }
-//   }
-
-//   Future<void> fetchNextCategoryBatch() async {
-//     if (_timer.isActive && _items.isNotEmpty) return;
-//     _timer = Timer(const Duration(milliseconds: 1000), () {});
-//     if (noMoreAds) return;
-//     if (state == PaginationState<T>.onGoingLoading(_items)) return;
-//     state = PaginationState.onGoingLoading(_items);
-//     try {
-//       await Future.delayed(Duration(seconds: 1));
-//       final result =
-//           await fetchItems(lastDocumentSnapshot, category, subCategory);
-//       final DocumentSnapshot? lastDocument =
-//           result.isNotEmpty ? (result.last as Item).documentSnapshot : null;
-//       updateData(result, lastDocument);
-//     } catch (e, stk) {
-//       state = PaginationState.onGoingError(_items, e, stk);
-//     }
-//   }
-// }
-
-// final categoryRepositoryProvider = Provider<CategoryRepository>((_) {
-//   return CategoryRepository();
-// });
-
-// final showCategoryAdsProvider =
-//     StateNotifierProvider<CategoryAdsPagination<Item>, PaginationState<Item>>(
-//         (ref) {
-//   return CategoryAdsPagination<Item>(
-//     fetchItems: (lastDocument, category, subCategory) {
-//       final data = ref
-//           .read(categoryRepositoryProvider)
-//           .getThatCategoryData(lastDocument, category, subCategory);
-//       print(data.toString());
-//       return data;
-//     },
-//     itemsPerBatch: 5,
-//   )..init();
-// });

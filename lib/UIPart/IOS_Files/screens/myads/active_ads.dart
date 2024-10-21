@@ -3,7 +3,6 @@ import 'package:college_project/Authentication/IOS_Files/Screens/auth/login_ios.
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/Authentication/Providers/internet_provider.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
-import 'package:college_project/UIPart/IOS_Files/screens/home/product_detail_screen.dart';
 import 'package:college_project/UIPart/IOS_Files/widgets/ad_card.dart';
 import 'package:college_project/UIPart/Providers/pagination_active_ads/show_ads.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -82,12 +81,13 @@ class _MyAdsState extends ConsumerState<MyAds> {
                   );
                 });
             await firestore.runTransaction((transaction) async {
-              DocumentSnapshot<Map<String, dynamic>> snapshot = await firestore
+              DocumentReference<Map<String, dynamic>> ref = firestore
                   .collection('users')
                   .doc(handler.newUser.user!.uid)
                   .collection('MyActiveAds')
-                  .doc(item.id)
-                  .get();
+                  .doc(item.id);
+
+              DocumentSnapshot<Map<String, dynamic>> snapshot = await ref.get();
               DocumentReference<Map<String, dynamic>> docRef =
                   snapshot.reference;
               Query<Map<String, dynamic>> allAdsQuery = firestore
@@ -104,21 +104,19 @@ class _MyAdsState extends ConsumerState<MyAds> {
                   .where('adReference', isEqualTo: docRef);
               QuerySnapshot<Map<String, dynamic>> categoryQuerySnapshot =
                   await categoryAdsQuery.get();
-              firestore
-                  .collection('users')
-                  .doc(handler.newUser.user!.uid)
-                  .collection('MySoldAds')
-                  .doc()
-                  .set(item.toJson());
+              // firestore
+              //     .collection('users')
+              //     .doc(handler.newUser.user!.uid)
+              //     .collection('MySoldAds')
+              //     .doc()
+              //     .set(item.toJson());
               await querySnapshot.docs.first.reference.delete();
               await categoryQuerySnapshot.docs.first.reference.delete();
-              await snapshot.reference.delete();
+              item = item.copyWith(isAvailable: false);
+              await docRef.update(item.toJson());
             });
             ref.read(showActiveAdsProvider.notifier).deleteItem(item);
-            // ref.read(homeAdsprovider.notifier).deleteItem(item);
-            //ref.read(showCatAdsProvider.notifier).deleteItem(item);
             Navigator.of(sellContext).pop();
-            print('done executing');
           } catch (e) {
             if (sellContext.mounted) {
               Navigator.of(sellContext).pop();
@@ -295,17 +293,17 @@ class _MyAdsState extends ConsumerState<MyAds> {
                                     final item = adState.items[index];
                                     return GestureDetector(
                                       onTap: () {
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .push(
-                                          CupertinoPageRoute(
-                                            builder: (ctx) =>
-                                                ProductDetailScreen(
-                                              item: item,
-                                              yourAd: true,
-                                            ),
-                                          ),
-                                        );
+                                        // Navigator.of(context,
+                                        //         rootNavigator: true)
+                                        //     .push(
+                                        //   CupertinoPageRoute(
+                                        //     builder: (ctx) =>
+                                        //         ProductDetailScreen(
+                                        //       item: item,
+                                        //       yourAd: true,
+                                        //     ),
+                                        //   ),
+                                        // );
                                       },
                                       child: AdCard(
                                         cardIndex: index,

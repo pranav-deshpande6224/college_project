@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Item {
+  final Timestamp timestamp;
   final String userid;
   final String id;
   final String adTitle;
   final String adDescription;
-  final String createdAt;
   final double price;
   final List<String> images;
   final String postedBy;
@@ -15,9 +15,12 @@ class Item {
   final String chargerType;
   final String tabletType;
   final DocumentSnapshot documentSnapshot;
-  final DocumentReference<Map<String, dynamic>>? reference;
+  final DocumentReference<Map<String, dynamic>> documentReference;
+  final bool isAvailable;
   const Item({
-    required this.reference,
+    required this.timestamp,
+    required this.isAvailable,
+    required this.documentReference,
     required this.documentSnapshot,
     required this.chargerType,
     required this.tabletType,
@@ -26,7 +29,6 @@ class Item {
     required this.id,
     required this.adTitle,
     required this.adDescription,
-    required this.createdAt,
     required this.price,
     required this.images,
     required this.postedBy,
@@ -42,25 +44,28 @@ class Item {
     return imageList;
   }
 
-  factory Item.fromJson(Map<String, dynamic> json, String productId,
-      String createdAt, DocumentSnapshot doc, DocumentReference<Map<String,dynamic>>? reference) {
+  factory Item.fromJson(
+      Map<String, dynamic> json,
+      String productId,
+      DocumentSnapshot doc,
+      DocumentReference<Map<String, dynamic>> reference) {
     return Item(
-      reference: reference,
-      id: productId,
-      userid: json['userId'],
-      adTitle: json['adTitle'],
-      adDescription: json['adDescription'],
-      createdAt: createdAt,
-      price: json['price'],
-      images: getImages(json['images']),
-      postedBy: json['postedBy'],
-      categoryName: json['categoryName'],
-      subCategoryName: json['subCategoryName'],
-      brand: json['brand'],
-      documentSnapshot: doc,
-      chargerType: json['charger_type'],
-      tabletType: json['tablet_type'],
-    );
+        timestamp: json['createdAt'],
+        documentReference: reference,
+        id: productId,
+        userid: json['userId'],
+        adTitle: json['adTitle'],
+        adDescription: json['adDescription'],
+        price: json['price'],
+        images: getImages(json['images']),
+        postedBy: json['postedBy'],
+        categoryName: json['categoryName'],
+        subCategoryName: json['subCategoryName'],
+        brand: json['brand'],
+        documentSnapshot: doc,
+        chargerType: json['charger_type'],
+        tabletType: json['tablet_type'],
+        isAvailable: json['isAvailable']);
   }
 
   Map<String, dynamic> toJson() {
@@ -72,11 +77,49 @@ class Item {
       'postedBy': postedBy,
       'categoryName': categoryName,
       'subCategoryName': subCategoryName,
-      'createdAt': FieldValue.serverTimestamp(),
       'userId': userid,
       'brand': brand,
       'charger_type': chargerType,
       'tablet_type': tabletType,
+      'isAvailable': isAvailable,
     };
+  }
+
+  Item copyWith({
+    String? userid,
+    String? id,
+    String? adTitle,
+    String? adDescription,
+    String? createdAt,
+    double? price,
+    List<String>? images,
+    String? postedBy,
+    String? categoryName,
+    String? subCategoryName,
+    String? brand,
+    String? chargerType,
+    String? tabletType,
+    DocumentSnapshot? documentSnapshot,
+    DocumentReference<Map<String, dynamic>>? documentReference,
+    bool? isAvailable,
+  }) {
+    return Item(
+      userid: userid ?? this.userid,
+      id: id ?? this.id,
+      adTitle: adTitle ?? this.adTitle,
+      adDescription: adDescription ?? this.adDescription,
+      price: price ?? this.price,
+      images: images ?? this.images,
+      postedBy: postedBy ?? this.postedBy,
+      categoryName: categoryName ?? this.categoryName,
+      subCategoryName: subCategoryName ?? this.subCategoryName,
+      brand: brand ?? this.brand,
+      chargerType: chargerType ?? this.chargerType,
+      tabletType: tabletType ?? this.tabletType,
+      documentSnapshot: documentSnapshot ?? this.documentSnapshot,
+      documentReference: documentReference ?? this.documentReference,
+      isAvailable: isAvailable ?? this.isAvailable, 
+      timestamp: timestamp,
+    );
   }
 }

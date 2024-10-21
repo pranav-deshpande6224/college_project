@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+
 
 class SoldAdState {
   final List<Item> items;
@@ -38,16 +38,14 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
         Query<Map<String, dynamic>> query = fireStore
             .collection('users')
             .doc(handler.newUser.user!.uid)
-            .collection('MySoldAds')
+            .collection('MyActiveAds')
+            .where('isAvailable',isEqualTo: false)
             .orderBy('createdAt', descending: true)
             .limit(_itemsPerPage);
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         final docs = querySnapshot.docs.map<Item>((doc) {
-          Timestamp timeStamp = doc.data()['createdAt'];
-          final dateString =
-              DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(doc.data(), doc.id, dateString, doc, null);
+          return Item.fromJson(doc.data(), doc.id,doc, doc.reference);
         }).toList();
         if (querySnapshot.docs.isNotEmpty) {
           _soldLastDocument = querySnapshot.docs.last;
@@ -108,10 +106,7 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
             .limit(_itemsPerPage);
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         final newDocs = querySnapshot.docs.map<Item>((doc) {
-          Timestamp timeStamp = doc.data()['createdAt'];
-          final dateString =
-              DateFormat('dd--MM--yy').format(timeStamp.toDate());
-          return Item.fromJson(doc.data(), doc.id, dateString, doc, null);
+          return Item.fromJson(doc.data(), doc.id,doc, doc.reference);
         }).toList();
         if (newDocs.isNotEmpty) {
           _soldLastDocument = querySnapshot.docs.last;

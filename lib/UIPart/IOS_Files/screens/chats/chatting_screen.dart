@@ -1,8 +1,12 @@
+import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
+import 'package:college_project/UIPart/IOS_Files/model/contact.dart';
 import 'package:college_project/UIPart/IOS_Files/model/item.dart';
+import 'package:college_project/UIPart/IOS_Files/model/message.dart';
 import 'package:college_project/UIPart/Providers/active_inactive_send.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:uuid/uuid.dart';
 
 class ChattingScreen extends ConsumerStatefulWidget {
   final Item item;
@@ -15,11 +19,95 @@ class ChattingScreen extends ConsumerStatefulWidget {
 class _ChattingScreenState extends ConsumerState<ChattingScreen> {
   final chatController = TextEditingController();
   final chatFocusNode = FocusNode();
+  late AuthHandler handler;
+  @override
+  void initState() {
+    handler = AuthHandler.authHandlerInstance;
+    super.initState();
+  }
+
   @override
   void dispose() {
     super.dispose();
     chatController.dispose();
     chatFocusNode.dispose();
+  }
+
+  sendMessageToDb(String message) async {
+    if (handler.newUser.user != null) {
+      try {
+        final firestore = handler.fireStore;
+        var timeSent = DateTime.now();
+        final messageId = const Uuid().v1();
+        final senderContact = Contact(
+            contactId: widget.item.userid,
+            lastMessage: message,
+            nameOfContact: widget.item.postedBy,
+            timeSent: timeSent);
+        final recieverContact = Contact(
+          contactId: handler.newUser.user!.uid,
+          lastMessage: message,
+          nameOfContact: handler.newUser.user!.displayName!,
+          timeSent: timeSent,
+        );
+        await firestore.runTransaction((transaction) async {
+          await firestore
+              .collection('users')
+              .doc(handler.newUser.user!.uid)
+              .collection('chats')
+              .doc(widget.item.userid)
+              .set(senderContact.toJson());
+          await firestore
+              .collection('users')
+              .doc(widget.item.userid)
+              .collection('chats')
+              .doc(handler.newUser.user!.uid)
+              .set(
+                recieverContact.toJson(),
+              );
+          await firestore
+              .collection('users')
+              .doc(handler.newUser.user!.uid)
+              .collection('chats')
+              .doc(widget.item.userid)
+              .collection('messages')
+              .doc(messageId)
+              .set(
+                Message(
+                  messageId: messageId,
+                  senderId: handler.newUser.user!.uid,
+                  receiverId: widget.item.userid,
+                  text: message,
+                  timeSent: timeSent,
+                  isSeen: false,
+                ).toJson(),
+              );
+          await firestore
+              .collection('users')
+              .doc(widget.item.userid)
+              .collection('chats')
+              .doc(handler.newUser.user!.uid)
+              .collection('messages')
+              .doc(messageId)
+              .set(
+                Message(
+                  messageId: messageId,
+                  senderId: handler.newUser.user!.uid,
+                  receiverId: widget.item.userid,
+                  text: message,
+                  timeSent: timeSent,
+                  isSeen: false,
+                ).toJson(),
+              );
+        }).then((_) {
+          chatController.clear();
+        });
+      } catch (e) {
+        print(e.toString());
+      }
+    } else {
+      // Navigate to Login Page
+    }
   }
 
   @override
@@ -67,6 +155,37 @@ class _ChattingScreenState extends ConsumerState<ChattingScreen> {
             },
             child: Column(
               children: [
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                      border: Border(bottom: BorderSide(width: 0.2))),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.item.adTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.roboto(),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        Expanded(
+                            child: Text(
+                          '₹ ${widget.item.price.toInt()}',
+                          style: GoogleFonts.roboto(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ))
+                      ],
+                    ),
+                  ),
+                ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: 10,
@@ -87,7 +206,7 @@ class _ChattingScreenState extends ConsumerState<ChattingScreen> {
                             if (value.isEmpty) {}
                           },
                           onChanged: (value) {
-                            if (value.isNotEmpty) {
+                            if (value.trim().isNotEmpty) {
                               ref
                                   .read(activeInactiveSendProvider.notifier)
                                   .setActiveInactive(true);
@@ -114,8 +233,9 @@ class _ChattingScreenState extends ConsumerState<ChattingScreen> {
                             padding: EdgeInsetsDirectional.zero,
                             onPressed: activeInactiveSend
                                 ? () {
-                                    print(chatController.text);
-                                    chatController.clear();
+                                    sendMessageToDb(chatController.text);
+                                    // print(chatController.text);
+                                    // chatController.clear();
                                   }
                                 : null,
                             child: Icon(CupertinoIcons.paperplane),
