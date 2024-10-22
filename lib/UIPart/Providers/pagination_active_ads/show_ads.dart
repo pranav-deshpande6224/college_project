@@ -48,7 +48,8 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
         
         
         final docs = querySnapshot.docs.map<Item>((doc) {
-          return Item.fromJson(doc.data(), doc.id, doc, doc.reference);
+          
+          return Item.fromJson(doc.data(), doc, doc.reference);
         }).toList();
         if (querySnapshot.docs.isNotEmpty) {
           _lastDocument = querySnapshot.docs.last;
@@ -101,7 +102,7 @@ class ShowActiveAds extends StateNotifier<AsyncValue<ActiveAdsState>> {
             .limit(_itemsPerPage);
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         final newDocs = querySnapshot.docs.map<Item>((doc) {
-          return Item.fromJson(doc.data(), doc.id, doc, doc.reference);
+          return Item.fromJson(doc.data(),doc, doc.reference);
         }).toList();
         if (newDocs.isNotEmpty) {
           _lastDocument = querySnapshot.docs.last;

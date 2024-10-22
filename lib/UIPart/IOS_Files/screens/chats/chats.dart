@@ -1,5 +1,6 @@
 import 'package:college_project/Authentication/IOS_Files/handlers/auth_handler.dart';
 import 'package:college_project/UIPart/IOS_Files/model/contact.dart';
+import 'package:college_project/UIPart/IOS_Files/screens/chats/chatting_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -72,7 +73,16 @@ class _ChatsState extends State<Chats> {
                   final obj = snapshot.data![index];
                   return GestureDetector(
                     onTap: () {
-                     // Navigator.of(context, rootNavigator: true).push(CupertinoPageRoute(builder: (ctx)=> ChattingScreen(item: item)));
+                      Navigator.of(context, rootNavigator: true).push(
+                        CupertinoPageRoute(
+                          builder: (ctx) => ChattingScreen(
+                            name: obj.nameOfContact,
+                            documentReference: obj.reference,
+                            recieverId: obj.contactId,   
+                            senderId: handler.newUser.user!.uid,        
+                          ),
+                        ),
+                      );
                     },
                     child: Column(
                       children: [

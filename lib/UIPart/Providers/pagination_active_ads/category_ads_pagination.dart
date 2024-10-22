@@ -64,7 +64,7 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
       for (var doc in snapshot.docs) {
         DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
         DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-        final item = Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
+        final item = Item.fromJson(dataDoc.data()!, doc, ref);
         items.add(item);
       }
       return items;
@@ -141,7 +141,7 @@ class ShowCategoryAds extends StateNotifier<AsyncValue<CategoryAdsState>> {
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
           DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
 
-          return Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
+          return Item.fromJson(dataDoc.data()!, doc, ref);
         }).toList());
         if (moreHomeItems.isNotEmpty) {
           _lastDocument = querySnapshot.docs.last;

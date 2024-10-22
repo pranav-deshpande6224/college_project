@@ -46,13 +46,12 @@ class Item {
 
   factory Item.fromJson(
       Map<String, dynamic> json,
-      String productId,
       DocumentSnapshot doc,
       DocumentReference<Map<String, dynamic>> reference) {
     return Item(
         timestamp: json['createdAt'],
         documentReference: reference,
-        id: productId,
+        id: json['id'],
         userid: json['userId'],
         adTitle: json['adTitle'],
         adDescription: json['adDescription'],

@@ -58,7 +58,7 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
       for (var doc in snapshot.docs) {
         DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
         DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-        final item = Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
+        final item = Item.fromJson(dataDoc.data()!,doc, ref);
         items.add(item);
       }
       return items;
@@ -129,8 +129,7 @@ class ShowHomeAds extends StateNotifier<AsyncValue<HomeAdState>> {
             await Future.wait(querySnapshot.docs.map((doc) async {
           DocumentReference<Map<String, dynamic>> ref = doc['adReference'];
           DocumentSnapshot<Map<String, dynamic>> dataDoc = await ref.get();
-
-          return Item.fromJson(dataDoc.data()!, dataDoc.id, doc, ref);
+          return Item.fromJson(dataDoc.data()!,doc, ref);
         }).toList());
         if (moreHomeItems.isNotEmpty) {
           _lastHomeDocument = querySnapshot.docs.last;

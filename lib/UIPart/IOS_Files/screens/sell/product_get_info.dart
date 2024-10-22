@@ -154,6 +154,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
     final fbStorage = handler.storage;
     final fbCloudFireStore = handler.fireStore;
     final uuid = const Uuid().v4();
+    final uuid1 = const Uuid().v1();
     if (handler.newUser.user?.uid == null) {
       // then i need to write the code to move to the login screen.
       Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
@@ -168,6 +169,7 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
         late BuildContext popContext;
         try {
           print("before the transaction");
+          print("uuidv1 is $uuid1");
           await fbCloudFireStore.runTransaction((_) async {
             showCupertinoDialog(
                 context: context,
@@ -190,13 +192,16 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                   await fbStorage.ref(uniqueName).getDownloadURL();
               url.add(downloadURL);
             }
-            CollectionReference myActiveAdsCollection = fbCloudFireStore
-                .collection('users')
-                .doc(handler.newUser.user!.uid)
-                .collection('MyActiveAds');
+            DocumentReference<Map<String, dynamic>> activeAdDoc =
+                fbCloudFireStore
+                    .collection('users')
+                    .doc(handler.newUser.user!.uid)
+                    .collection('MyActiveAds')
+                    .doc(uuid1);
             final timeStamp = FieldValue.serverTimestamp();
-            DocumentReference adDocRef = await myActiveAdsCollection.add(
+            await activeAdDoc.set(
               {
+                'id': uuid1,
                 'adTitle': _adTitleController.text.trim(),
                 'adDescription': _adDescriptionController.text.trim(),
                 'price': double.parse(_priceController.text.trim()),
@@ -222,12 +227,12 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
             CollectionReference allAdsCollection =
                 fbCloudFireStore.collection('AllAds');
             QuerySnapshot existingPost = await allAdsCollection
-                .where('adReference', isEqualTo: adDocRef)
+                .where('adReference', isEqualTo: activeAdDoc)
                 .get();
             if (existingPost.docs.isEmpty) {
-              allAdsCollection.add({
+              await allAdsCollection.add({
                 'adReference':
-                    adDocRef, // Store reference to the ad document in MyActiveAds
+                    activeAdDoc, // Store reference to the ad document in MyActiveAds
                 'createdAt': timeStamp
               });
             }
@@ -240,22 +245,19 @@ class _ProductGetInfoState extends ConsumerState<ProductGetInfo> {
                 .doc(widget.subCategoryName);
             QuerySnapshot existingSubcategoryAd = await subcategoryDocRef
                 .collection('Ads')
-                .where('adReference', isEqualTo: adDocRef)
+                .where('adReference', isEqualTo: activeAdDoc)
                 .get();
 
             if (existingSubcategoryAd.docs.isEmpty) {
               // If the ad reference does not exist in the subcategory, add it
-              subcategoryDocRef
+              await subcategoryDocRef
                   .collection('Ads')
-                  .add({'adReference': adDocRef, 'createdAt': timeStamp});
-            } else {
-              print("This ad reference already exists in the subcategory");
+                  .add({'adReference': activeAdDoc, 'createdAt': timeStamp});
             }
           }).then((_) {
             if (!context.mounted) {
               return;
             }
-            //ref.read(submitAdPostSpinner.notifier).isDoneLoading();
             resetFields();
             Navigator.of(popContext).pop();
             if (context.mounted) {

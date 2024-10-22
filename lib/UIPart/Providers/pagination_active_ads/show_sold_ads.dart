@@ -45,7 +45,7 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         final docs = querySnapshot.docs.map<Item>((doc) {
-          return Item.fromJson(doc.data(), doc.id,doc, doc.reference);
+          return Item.fromJson(doc.data(),doc, doc.reference);
         }).toList();
         if (querySnapshot.docs.isNotEmpty) {
           _soldLastDocument = querySnapshot.docs.last;
@@ -106,7 +106,7 @@ class ShowSoldAds extends StateNotifier<AsyncValue<SoldAdState>> {
             .limit(_itemsPerPage);
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         final newDocs = querySnapshot.docs.map<Item>((doc) {
-          return Item.fromJson(doc.data(), doc.id,doc, doc.reference);
+          return Item.fromJson(doc.data(),doc, doc.reference);
         }).toList();
         if (newDocs.isNotEmpty) {
           _soldLastDocument = querySnapshot.docs.last;

@@ -190,6 +190,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           );
                         }
                         if (snapshot.hasError) {
+                          // TODO need to handle this error case
                           return Center(
                             child: Text("Something went wrong"),
                           );
@@ -200,7 +201,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             DateTime.now().millisecondsSinceEpoch);
                         final item = Item.fromJson(
                           snapshot.data!.data()!,
-                          snapshot.data!.id,
                           snapshot.data!,
                           snapshot.data!.reference,
                         );
@@ -400,7 +400,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                                     CupertinoPageRoute(
                                                       builder: (ctx) =>
                                                           ChattingScreen(
-                                                        item: item,
+                                                        name: item.postedBy,
+                                                        documentReference: widget
+                                                            .documentReference,
+                                                        recieverId: item.userid,
+                                                        senderId: handler.newUser.user!.uid,
                                                       ),
                                                     ),
                                                   );
